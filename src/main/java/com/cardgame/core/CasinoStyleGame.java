@@ -3,9 +3,17 @@ package com.cardgame.core;
 import java.util.Scanner;
 
 /**
- * Abstract base class for card games that implements common functionality
+ * Abstract base class for dealer-based card games where a player competes against a dealer.
+ * This class provides common functionality for games like Blackjack and Poker
+ * where scoring is based on hand evaluation and there is typically a house/dealer.
+ * 
+ * Games that extend this class benefit from:
+ * - Player vs dealer structure
+ * - Scoring strategy pattern for hand evaluation
+ * - Common deck management
+ * - Basic game flow control
  */
-public abstract class AbstractGame implements Game {
+public abstract class CasinoStyleGame implements Game {
     protected Deck deck;
     protected Player player;
     protected Player dealer;
@@ -14,11 +22,11 @@ public abstract class AbstractGame implements Game {
     protected ScoringStrategy scoringStrategy;
 
     /**
-     * Creates a new game with the specified scoring strategy
+     * Creates a new dealer-based game with the specified scoring strategy
      * 
-     * @param scoringStrategy The strategy to use for scoring hands
+     * @param scoringStrategy The strategy to use for scoring and comparing hands
      */
-    public AbstractGame(ScoringStrategy scoringStrategy) {
+    public CasinoStyleGame(ScoringStrategy scoringStrategy) {
         this.deck = new Deck();
         this.scanner = new Scanner(System.in);
         this.gameOver = false;
