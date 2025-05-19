@@ -1,33 +1,33 @@
 package com.cardgame.core;
 
-import java.util.List;
-
-public abstract class Game {
-    protected Deck deck;
-    protected Player player;
-    protected Player dealer;
-    protected boolean gameOver;
-
-    public abstract void start();
+/**
+ * Interface representing a card game
+ */
+public interface Game {
+    /**
+     * Starts the game
+     */
+    void start();
     
-    public abstract void playRound();
+    /**
+     * Plays a round of the game
+     */
+    void playRound();
     
-    public abstract boolean isGameOver();
+    /**
+     * Checks if the game is over
+     * 
+     * @return true if the game is over, false otherwise
+     */
+    boolean isGameOver();
     
-    public abstract void endGame();
+    /**
+     * Ends the game and performs any necessary cleanup
+     */
+    void endGame();
     
-    public abstract void reset();
-    
-    protected abstract int calculateScore(List<Card> hand);
-    
-    protected abstract int compareHands(List<Card> hand1, List<Card> hand2);
-    
-    protected abstract boolean isBusted(List<Card> hand);
-    
-    protected void shuffleIfNeeded(int minCards) {
-        if (deck.remainingCards() < minCards) {
-            System.out.println("Shuffling deck...");
-            deck = new Deck();
-        }
-    }
+    /**
+     * Resets the game for a new round
+     */
+    void reset();
 }

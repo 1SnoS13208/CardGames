@@ -1,33 +1,74 @@
 package com.cardgame.core;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
+/**
+ * Represents a player in a card game
+ */
 public class Player {
     protected String name;
     protected List<Card> hand;
 
+    /**
+     * Creates a new player with the given name
+     * 
+     * @param name The player's name
+     * @throws IllegalArgumentException if name is null or empty
+     */
     public Player(String name) {
+        if (name == null || name.trim().isEmpty()) {
+            throw new IllegalArgumentException("Player name cannot be null or empty");
+        }
         this.name = name;
         this.hand = new ArrayList<>();
     }
 
+    /**
+     * Adds a card to the player's hand
+     * 
+     * @param card The card to add
+     * @throws IllegalArgumentException if card is null
+     */
     public void addCard(Card card) {
+        if (card == null) {
+            throw new IllegalArgumentException("Card cannot be null");
+        }
         hand.add(card);
     }
 
+    /**
+     * Clears all cards from the player's hand
+     */
     public void clearHand() {
         hand.clear();
     }
 
-    // Getter methods
+    /**
+     * Gets the player's name
+     * 
+     * @return The player's name
+     */
     public String getName() { 
         return name; 
     }
+    
+    /**
+     * Gets a copy of the player's hand
+     * Returns a defensive copy to prevent modification
+     * 
+     * @return A copy of the player's hand
+     */
     public List<Card> getHand() { 
-        return new ArrayList<>(hand); 
+        return Collections.unmodifiableList(new ArrayList<>(hand)); 
     }
 
+    /**
+     * Returns a string representation of the player
+     * 
+     * @return A string representation of the player
+     */
     @Override
     public String toString() {
         return name + ": " + hand;
