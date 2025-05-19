@@ -1,7 +1,6 @@
 package com.cardgame.blackjack;
 
 import com.cardgame.core.Player;
-import com.cardgame.core.Card;
 
 /**
  * Represents a player in the Blackjack game
@@ -81,6 +80,6 @@ public class BlackjackPlayer extends Player {
         if (isDealer) {
             return "Dealer's cards: " + getHand();
         }
-        return super.getName() + " (Chips: " + chips + "): " + getHand();
+        return super.getName() + "'s hand: " + getHand();
     }
 }

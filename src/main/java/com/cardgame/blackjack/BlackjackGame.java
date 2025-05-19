@@ -8,6 +8,7 @@ import java.util.List;
  * Implementation of the Blackjack card game
  */
 public class BlackjackGame extends AbstractGame {
+    protected int bet;
 
     /**
      * Initializes a new Blackjack game
@@ -34,7 +35,6 @@ public class BlackjackGame extends AbstractGame {
                 gameOver = true;
             } else {
                 reset();
-                shuffleIfNeeded(20);
             }
         }
         endGame();
@@ -43,6 +43,29 @@ public class BlackjackGame extends AbstractGame {
     @Override
     public void playRound() {
         System.out.println("\n--- New Round ---");
+        BlackjackPlayer bjPlayer = (BlackjackPlayer) player;
+        System.out.println("Your chips: " + bjPlayer.getChips());
+        
+        // Get and validate bet
+        boolean validBet = false;
+        while (!validBet) {
+            System.out.print("Enter your bet: ");
+            try {
+                bet = Integer.parseInt(scanner.nextLine().trim());
+                if (bet <= 0) {
+                    System.out.println("Bet must be positive.");
+                } else if (bet > bjPlayer.getChips()) {
+                    System.out.println("You don't have enough chips.");
+                } else {
+                    validBet = true;
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("Please enter a valid number.");
+            }
+        }
+        
+        // Ensure we have enough cards
+        shuffleIfNeeded(10);
         
         // Deal initial cards
         player.addCard(deck.draw());
@@ -52,13 +75,12 @@ public class BlackjackGame extends AbstractGame {
         
         // Show cards
         System.out.println("\n" + player);
-        System.out.println(dealer.getHand().get(0) + " and [??]");
+        System.out.println("Dealer shows: " + dealer.getHand().get(0) + " and [Hidden Card]");
         
         // Check for blackjack
-        BlackjackPlayer bjPlayer = (BlackjackPlayer) player;
         if (hasBlackjack(bjPlayer.getHand())) {
-            System.out.println("Blackjack! You win!");
-            bjPlayer.addChips(15); // 3:2 payout for blackjack
+            System.out.println("Blackjack! You win 3:2 on your bet!");
+            bjPlayer.addChips((int)(bet * 1.5)); // 3:2 payout for blackjack
             return;
         }
         
@@ -79,8 +101,6 @@ public class BlackjackGame extends AbstractGame {
     }
 
     private void playerTurn() {
-        BlackjackPlayer bjPlayer = (BlackjackPlayer) player;
-        
         while (true) {
             System.out.println("\nYour current score: " + scoringStrategy.calculateScore(player.getHand()));
             System.out.print("Hit or stand? (h/s): ");
@@ -113,7 +133,7 @@ public class BlackjackGame extends AbstractGame {
             
             if (scoringStrategy.isBusted(dealer.getHand())) {
                 System.out.println("Dealer busts! You win!");
-                ((BlackjackPlayer) player).addChips(10); // Standard win
+                ((BlackjackPlayer) player).addChips(bet);
                 return;
             }
         }
@@ -131,25 +151,31 @@ public class BlackjackGame extends AbstractGame {
         
         if (scoringStrategy.isBusted(player.getHand())) {
             System.out.println("You busted! Dealer wins!");
-            bjPlayer.removeChips(10);
+            bjPlayer.removeChips(bet);
         } else if (scoringStrategy.isBusted(dealer.getHand())) {
             System.out.println("Dealer busted! You win!");
-            bjPlayer.addChips(10);
+            bjPlayer.addChips(bet);
         } else {
             int comparison = scoringStrategy.compareHands(player.getHand(), dealer.getHand());
             if (comparison > 0) {
                 System.out.println("You win!");
-                bjPlayer.addChips(10);
+                bjPlayer.addChips(bet);
             } else if (comparison < 0) {
                 System.out.println("Dealer wins!");
-                bjPlayer.removeChips(10);
+                bjPlayer.removeChips(bet);
             } else {
-                System.out.println("It's a tie!");
+                System.out.println("It's a tie! Your bet is returned.");
                 // No chips exchanged on a tie
             }
         }
         
         System.out.println("Your chips: " + bjPlayer.getChips());
+        
+        // Check if player is out of chips
+        if (bjPlayer.getChips() <= 0) {
+            System.out.println("You're out of chips! Game over.");
+            gameOver = true;
+        }
     }
 
     @Override

@@ -17,7 +17,7 @@ public class Main {
         System.out.println("Welcome to Card Game!");
         System.out.println("Please select a game:");
         System.out.println("1. Blackjack");
-        System.out.println("2. Poker");
+        System.out.println("2. Poker (Coming soon)");
         
         Scanner scanner = new Scanner(System.in);
         int choice = 1; // Default to Blackjack
@@ -35,6 +35,7 @@ public class Main {
         
         Game game;
         if (choice == 2) {
+            System.out.println("Poker is coming soon! Defaulting to Blackjack.");
             game = new BlackjackGame();
         } else {
             game = new BlackjackGame();
