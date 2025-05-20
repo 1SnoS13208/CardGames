@@ -2,6 +2,8 @@
 
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Slider?>
+<?import javafx.scene.effect.Blend?>
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.HBox?>
@@ -15,37 +17,47 @@
       <!-- Background Image -->
       <ImageView fitHeight="517.0" fitWidth="778.0" pickOnBounds="true" preserveRatio="true">
          <image>
-            <Image url="@../../../../../resources/Board/CasinoBoard.png" />
+            <Image url="/Board/CasinoBoard.png" />
          </image>
       </ImageView>
       
-      <Pane focusTraversable="true" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="500.0" prefWidth="700.0">
+      <Pane fx:id="mainGamePane" focusTraversable="true" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="500.0" prefWidth="700.0">
          <children>
             <!-- Dealer Section -->
             <VBox alignment="CENTER" layoutX="300.0" layoutY="20.0" prefHeight="100.0" prefWidth="100.0">
                <children>
                   <ImageView fitHeight="74.0" fitWidth="73.0" pickOnBounds="true" preserveRatio="true">
                      <image>
-                        <Image url="@../../../../../resources/Avatar/Dealer.jpg" />
+                        <Image url="/Avatar/Dealer.jpg" />
                      </image>
                   </ImageView>
                </children>
             </VBox>
             
             <!-- Dealer Cards Area -->
-            <Label layoutX="311.0" layoutY="142.0" style="-fx-text-fill: white;" text="Dealer Card">
+            <Label layoutX="311.0" layoutY="142.0" style="-fx-text-fill: white;" text="">
                <font>
                   <Font name="System Bold" size="14.0" />
                </font>
             </Label>
-            <HBox fx:id="dealerCardsArea" alignment="CENTER" layoutX="150.0" layoutY="150.0" prefHeight="100.0" prefWidth="400.0" spacing="10.0">
+            <Label fx:id="dealerHandLabel" layoutX="308.0" layoutY="110.0" style="-fx-text-fill: white;" text="Dealer Card: ?">
+               <font>
+                  <Font name="System Bold" size="13.0" />
+               </font>
+            </Label>
+            <HBox fx:id="dealerCardsArea" alignment="CENTER" layoutX="150.0" layoutY="136.0" prefHeight="100.0" prefWidth="400.0" spacing="10.0">
                <!-- Dealer cards will be added here dynamically -->
             </HBox>
             
             <!-- Center Area for Player Cards -->
-            <Label layoutX="319.0" layoutY="258.0" style="-fx-text-fill: white;" text="User Card">
+            <Label layoutX="319.0" layoutY="258.0" style="-fx-text-fill: white;" text="">
                <font>
                   <Font name="System Bold" size="14.0" />
+               </font>
+            </Label>
+            <Label fx:id="playerHandLabel" layoutX="313.0" layoutY="241.0" style="-fx-text-fill: white;" text="User Card: 0">
+               <font>
+                  <Font name="System Bold" size="13.0" />
                </font>
             </Label>
             <HBox fx:id="playerCardsArea" alignment="CENTER" layoutX="150.0" layoutY="270.0" prefHeight="100.0" prefWidth="400.0" spacing="10.0">
@@ -62,7 +74,7 @@
                   </Label>
                   <ImageView fitHeight="74.0" fitWidth="74.0" pickOnBounds="true" preserveRatio="true">
                      <image>
-                        <Image url="@../../../../../resources/Avatar/Player.jpg" />
+                        <Image url="/Avatar/Player.jpg" />
                      </image>
                   </ImageView>
                   <Label fx:id="playerNameLabel" style="-fx-text-fill: white;" text="User Name">
@@ -107,6 +119,25 @@
                   <Font name="System Bold" size="16.0" />
                </font>
             </Label>
+         </children>
+      </Pane>
+      <Pane fx:id="betPane" prefHeight="200.0" prefWidth="200.0">
+         <children>
+            <VBox alignment="CENTER" layoutX="252.0" layoutY="171.0" prefHeight="142.0" prefWidth="273.0">
+               <effect>
+                  <Blend />
+               </effect>
+               <children>
+                  <Label contentDisplay="CENTER" prefHeight="30.0" prefWidth="134.0" text="Choose your bet" textAlignment="CENTER" textFill="WHITE">
+                     <font>
+                        <Font size="18.0" />
+                     </font>
+                  </Label>
+                  <Label fx:id="betNumberLabel" text="100" textFill="WHITE"/>
+                  <Slider fx:id="betSlider" prefHeight="24.0" prefWidth="116.0" />
+                  <Button fx:id="betOkButton" contentDisplay="CENTER" mnemonicParsing="false" prefHeight="30.0" prefWidth="64.0" text="OK" onAction="#handleBetOk" />
+               </children>
+            </VBox>
          </children>
       </Pane>
    </children>

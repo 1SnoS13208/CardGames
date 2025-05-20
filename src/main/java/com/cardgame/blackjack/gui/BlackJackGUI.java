@@ -9,10 +9,10 @@ import javafx.stage.Stage;
 public class BlackJackGUI extends Application{
     @Override
     public void start(Stage stage) throws Exception {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("BlackJack.fxml"));
-        Parent root = loader.load();
-        stage.setTitle("BlackJack");
-        stage.setScene(new Scene(root));
+        Parent root = FXMLLoader.load(getClass().getResource("BlackJack.fxml"));
+        Scene scene = new Scene(root);
+        stage.setTitle("Blackjack");
+        stage.setScene(scene);
         stage.show();
     }
 

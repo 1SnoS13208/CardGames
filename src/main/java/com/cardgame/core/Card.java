@@ -58,4 +58,28 @@ public class Card {
     public String toString() {
         return rank + " of " + suit;
     }
+
+    /**
+     * Returns the image file name for this card (e.g., "AS.png" for Ace of Spades)
+     * @return The image file name
+     */
+    public String getImageFileName() {
+        // Map suit to single character
+        String suitChar;
+        switch (suit.toLowerCase()) {
+            case "spades": suitChar = "S"; break;
+            case "hearts": suitChar = "H"; break;
+            case "diamonds": suitChar = "D"; break;
+            case "clubs": suitChar = "C"; break;
+            default: suitChar = "?"; break;
+        }
+        // Map rank (should be "A", "2", ..., "10", "J", "Q", "K")
+        String rankShort;
+        if (rank.equalsIgnoreCase("Ace")) rankShort = "A";
+        else if (rank.equalsIgnoreCase("Jack")) rankShort = "J";
+        else if (rank.equalsIgnoreCase("Queen")) rankShort = "Q";
+        else if (rank.equalsIgnoreCase("King")) rankShort = "K";
+        else rankShort = rank;
+        return rankShort + "-" + suitChar + ".png";
+    }
 }
