@@ -6,6 +6,21 @@
     "configurations": [
         {
             "type": "java",
+            "name": "BlackJackGUI",
+            "request": "launch",
+            "mainClass": "com.cardgame.blackjack.gui.BlackJackGUI",
+            "projectName": "CardGame_cd91e2fb",
+            "vmArgs": "--module-path \"C:/Program Files/Java/javafx-sdk-24.0.1/lib\" --add-modules javafx.controls,javafx.fxml"
+        },
+        {
+            "type": "java",
+            "name": "BlackjackLauncher",
+            "request": "launch",
+            "mainClass": "com.cardgame.BlackjackLauncher",
+            "projectName": "CardGame_cd91e2fb"
+        },
+        {
+            "type": "java",
             "name": "Current File",
             "request": "launch",
             "mainClass": "${file}"
@@ -16,8 +31,7 @@
             "request": "launch",
             "mainClass": "com.cardgame.Main",
             "projectName": "CardGame_cd91e2fb",
-            "vmArgs": "--module-path \"C:/Program Files/Java/javafx-sdk-21.0.7/lib\" --add-modules javafx.controls,javafx.fxml"
-
+            "vmArgs": "--module-path \"C:/Program Files/Java/javafx-sdk-24.0.1/lib\" --add-modules javafx.controls,javafx.fxml"
         }
     ]
 }

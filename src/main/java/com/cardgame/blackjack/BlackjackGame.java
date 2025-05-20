@@ -1,13 +1,13 @@
 package com.cardgame.blackjack;
 
-import com.cardgame.core.AbstractGame;
+import com.cardgame.core.CasinoStyleGame;
 import com.cardgame.core.Card;
 import java.util.List;
 
 /**
  * Implementation of the Blackjack card game
  */
-public class BlackjackGame extends AbstractGame {
+public class BlackjackGame extends CasinoStyleGame {
     protected int bet;
 
     /**
