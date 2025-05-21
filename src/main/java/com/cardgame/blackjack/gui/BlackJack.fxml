@@ -6,139 +6,136 @@
 <?import javafx.scene.effect.Blend?>
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<StackPane prefHeight="0.0" prefWidth="760.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.cardgame.blackjack.gui.BlackJackController">
-   <children>
-      <!-- Background Image -->
-      <ImageView fitHeight="517.0" fitWidth="778.0" pickOnBounds="true" preserveRatio="true">
-         <image>
-            <Image url="/Board/CasinoBoard.png" />
-         </image>
-      </ImageView>
-      
-      <Pane fx:id="mainGamePane" focusTraversable="true" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="500.0" prefWidth="700.0">
-         <children>
-            <!-- Dealer Section -->
-            <VBox alignment="CENTER" layoutX="300.0" layoutY="20.0" prefHeight="100.0" prefWidth="100.0">
-               <children>
-                  <ImageView fitHeight="74.0" fitWidth="73.0" pickOnBounds="true" preserveRatio="true">
-                     <image>
-                        <Image url="/Avatar/Dealer.jpg" />
-                     </image>
-                  </ImageView>
-               </children>
-            </VBox>
-            
-            <!-- Dealer Cards Area -->
-            <Label layoutX="311.0" layoutY="142.0" style="-fx-text-fill: white;" text="">
-               <font>
+<StackPane xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.cardgame.blackjack.gui.BlackJackController">
+    <!-- Background Image -->
+    <children>
+        <ImageView fitHeight="1080.0" fitWidth="1920.0" pickOnBounds="true" preserveRatio="false">
+            <image>
+                <Image url="/board/CasinoBoard.png" />
+            </image>
+        </ImageView>
+        <Pane fx:id="mainGamePane" focusTraversable="true" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="1080.0" prefWidth="1920.0">
+            <children>
+                <!-- Dealer Section -->
+                <VBox alignment="CENTER" layoutX="858.0" layoutY="20.0" prefHeight="180.0" prefWidth="100.0">
+                    <children>
+                      <Label style="-fx-text-fill: white;" text="Dealer">
+                          <font>
+                        <Font name="System Bold" size="36.0" />
+                     </font>
+                      </Label>
+                        <ImageView fitHeight="200.0" fitWidth="200.0" pickOnBounds="true" preserveRatio="true">
+                            <image>
+                                <Image url="/avatar/Dealer.jpg" />
+                            </image>
+                        </ImageView>
+                    </children>
+                </VBox>
+                <Label fx:id="dealerHandLabel" layoutX="883.0" layoutY="293.0" style="-fx-text-fill: white;" text="Dealer Card: ?">
+                    <font>
+                  <Font name="System Bold" size="24.0" />
+               </font>
+                </Label>
+                <HBox fx:id="dealerCardsArea" alignment="CENTER" layoutX="698.0" layoutY="343.0" prefHeight="200.0" prefWidth="526.0" spacing="10.0" />
+                <!-- Center Area for Player Cards -->
+                <Label layoutX="319.0" layoutY="258.0" style="-fx-text-fill: white;" text="">
+                    <font>
                   <Font name="System Bold" size="14.0" />
                </font>
-            </Label>
-            <Label fx:id="dealerHandLabel" layoutX="308.0" layoutY="110.0" style="-fx-text-fill: white;" text="Dealer Card: ?">
-               <font>
-                  <Font name="System Bold" size="13.0" />
+                </Label>
+                <Label fx:id="playerHandLabel" layoutX="893.0" layoutY="543.0" style="-fx-text-fill: white;" text="User Card: 0">
+                    <font>
+                  <Font name="System Bold" size="24.0" />
                </font>
-            </Label>
-            <HBox fx:id="dealerCardsArea" alignment="CENTER" layoutX="150.0" layoutY="136.0" prefHeight="100.0" prefWidth="400.0" spacing="10.0">
-               <!-- Dealer cards will be added here dynamically -->
-            </HBox>
-            
-            <!-- Center Area for Player Cards -->
-            <Label layoutX="319.0" layoutY="258.0" style="-fx-text-fill: white;" text="">
-               <font>
-                  <Font name="System Bold" size="14.0" />
-               </font>
-            </Label>
-            <Label fx:id="playerHandLabel" layoutX="313.0" layoutY="241.0" style="-fx-text-fill: white;" text="User Card: 0">
-               <font>
-                  <Font name="System Bold" size="13.0" />
-               </font>
-            </Label>
-            <HBox fx:id="playerCardsArea" alignment="CENTER" layoutX="150.0" layoutY="270.0" prefHeight="100.0" prefWidth="400.0" spacing="10.0">
-               <!-- Player cards will be added here dynamically -->
-            </HBox>
-            
-            <!-- Player Section -->
-            <VBox alignment="CENTER" layoutX="300.0" layoutY="380.0" prefHeight="100.0" prefWidth="100.0">
-               <children>
-                  <Label fx:id="moneyLabel" style="-fx-text-fill: white;" text="Money">
-                     <font>
-                        <Font name="System Bold" size="14.0" />
+                </Label>
+                <HBox fx:id="playerCardsArea" alignment="CENTER" layoutX="698.0" layoutY="581.0" prefHeight="200.0" prefWidth="526.0" spacing="10.0" />
+                <!-- Player Section -->
+                <VBox alignment="CENTER" layoutX="860.0" layoutY="773.0" prefHeight="100.0" prefWidth="100.0">
+                    <children>
+                        <Label fx:id="moneyLabel" alignment="CENTER" maxWidth="350.0" prefHeight="54.0" prefWidth="350.0" style="-fx-text-fill: white;" text="Money field" textAlignment="CENTER" wrapText="true">
+                            <font>
+                        <Font name="System Bold" size="24.0" />
                      </font>
-                  </Label>
-                  <ImageView fitHeight="74.0" fitWidth="74.0" pickOnBounds="true" preserveRatio="true">
-                     <image>
-                        <Image url="/Avatar/Player.jpg" />
-                     </image>
-                  </ImageView>
-                  <Label fx:id="playerNameLabel" style="-fx-text-fill: white;" text="User Name">
-                     <font>
-                        <Font name="System Bold" size="14.0" />
+                        </Label>
+                        <ImageView fitHeight="199.0" fitWidth="200.0" pickOnBounds="true" preserveRatio="true">
+                            <image>
+                                <Image url="/avatar/Player.jpg" />
+                            </image>
+                        </ImageView>
+                        <Label fx:id="playerNameLabel" style="-fx-text-fill: white;" text="User Name">
+                            <font>
+                        <Font name="System Bold" size="36.0" />
                      </font>
-                  </Label>
-               </children>
-            </VBox>
-            
-            <!-- Game Controls -->
-            <VBox alignment="CENTER" layoutX="550.0" layoutY="380.0" prefHeight="100.0" prefWidth="100.0" spacing="10.0">
-               <children>
-                  <Button fx:id="hitButton" mnemonicParsing="false" onAction="#handleHit" prefHeight="30.0" prefWidth="70.0" style="-fx-background-color: #388E3C;" text="Hit" textFill="WHITE">
-                     <font>
-                        <Font name="System Bold" size="14.0" />
+                        </Label>
+                    </children>
+                </VBox>
+                <!-- Game Controls -->
+                <VBox alignment="CENTER" layoutX="1140.0" layoutY="846.0" prefHeight="113.0" prefWidth="169.0" spacing="10.0">
+                    <children>
+                        <Button fx:id="hitButton" mnemonicParsing="false" onAction="#handleHit" prefHeight="51.0" prefWidth="100.0" style="-fx-background-color: #388E3C;" text="Hit" textFill="WHITE">
+                            <font>
+                        <Font name="System Bold" size="24.0" />
                      </font>
-                  </Button>
-                  <Button fx:id="standButton" mnemonicParsing="false" onAction="#handleStand" prefHeight="30.0" prefWidth="70.0" style="-fx-background-color: #D32F2F;" text="Stand" textFill="WHITE">
-                     <font>
-                        <Font name="System Bold" size="14.0" />
+                        </Button>
+                        <Button fx:id="standButton" mnemonicParsing="false" onAction="#handleStand" prefHeight="51.0" prefWidth="100.0" style="-fx-background-color: #D32F2F;" text="Stand" textFill="WHITE">
+                            <font>
+                        <Font name="System Bold" size="24.0" />
                      </font>
-                  </Button>
-               </children>
-            </VBox>
-            
-            <!-- New Game Button -->
-            <Button fx:id="newGameButton" layoutX="20.0" layoutY="20.0" mnemonicParsing="false" onAction="#handleNewGame" prefHeight="30.0" prefWidth="100.0" style="-fx-background-color: #1565C0;" text="New Game" textFill="WHITE">
-               <font>
-                  <Font name="System Bold" size="12.0" />
+                        </Button>
+                    </children>
+                </VBox>
+                <!-- New Game Button -->
+                <Button fx:id="newGameButton" layoutX="112.0" layoutY="26.0" mnemonicParsing="false" onAction="#handleNewGame" prefHeight="51.0" prefWidth="162.0" style="-fx-background-color: #1565C0;" text="New Game" textFill="WHITE">
+                    <font>
+                  <Font name="System Bold" size="24.0" />
                </font>
-            </Button>
-            
-            <!-- Bet Display -->
-            <Label fx:id="betLabel" layoutX="27.0" layoutY="64.0" style="-fx-text-fill: white;" text="Current Bet: $0">
-               <font>
-                  <Font name="System Bold" size="12.0" />
+                </Button>
+                <Button fx:id="quitButton" layoutX="282.0" layoutY="26.0" mnemonicParsing="false" onAction="#handleQuit" prefHeight="51.0" prefWidth="162.0" style="-fx-background-color: #D32F2F;" text="Quit" textFill="WHITE">
+                    <font>
+                  <Font name="System Bold" size="24.0" />
                </font>
-            </Label>
-            <Label layoutX="326.0" layoutY="8.0" style="-fx-text-fill: white;" text="Dealer">
-               <font>
-                  <Font name="System Bold" size="16.0" />
+                </Button>
+                <!-- Bet Display -->
+                <Label fx:id="betLabel" layoutX="108.0" layoutY="89.0" style="-fx-text-fill: white;" text="Current Bet: $0">
+                    <font>
+                  <Font name="System Bold" size="24.0" />
                </font>
-            </Label>
-         </children>
-      </Pane>
-      <Pane fx:id="betPane" prefHeight="200.0" prefWidth="200.0">
-         <children>
-            <VBox alignment="CENTER" layoutX="252.0" layoutY="171.0" prefHeight="142.0" prefWidth="273.0">
-               <effect>
-                  <Blend />
-               </effect>
-               <children>
-                  <Label contentDisplay="CENTER" prefHeight="30.0" prefWidth="134.0" text="Choose your bet" textAlignment="CENTER" textFill="WHITE">
-                     <font>
-                        <Font size="18.0" />
-                     </font>
-                  </Label>
-                  <Label fx:id="betNumberLabel" text="100" textFill="WHITE"/>
-                  <Slider fx:id="betSlider" prefHeight="24.0" prefWidth="116.0" />
-                  <Button fx:id="betOkButton" contentDisplay="CENTER" mnemonicParsing="false" prefHeight="30.0" prefWidth="64.0" text="OK" onAction="#handleBetOk" />
-               </children>
-            </VBox>
-         </children>
-      </Pane>
-   </children>
+                </Label>
+            </children>
+        </Pane>
+        <AnchorPane fx:id="betPane" pickOnBounds="false" visible="false">
+    <children>
+        <VBox alignment="CENTER" prefHeight="400.0" prefWidth="600.0" spacing="32.0" style="-fx-background-color: transparent;" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+    <effect>
+        <Blend />
+    </effect>
+    <children>
+        <Label alignment="CENTER" contentDisplay="CENTER" prefHeight="80.0" prefWidth="400.0" text="Choose your bet" textAlignment="CENTER" textFill="WHITE">
+            <font>
+                <Font size="48.0" />
+            </font>
+        </Label>
+        <Label fx:id="betNumberLabel" alignment="CENTER" prefHeight="60.0" prefWidth="120.0" text="100" textAlignment="CENTER" textFill="WHITE">
+            <font>
+                <Font size="36.0" />
+            </font>
+        </Label>
+        <Slider fx:id="betSlider" blockIncrement="10" majorTickUnit="100" max="1000" min="10" prefHeight="48.0" prefWidth="400.0" showTickLabels="false" showTickMarks="false" value="100" />
+        <Button fx:id="betOkButton" alignment="CENTER" contentDisplay="CENTER" mnemonicParsing="false" onAction="#handleBetOk" prefHeight="64.0" prefWidth="180.0" text="OK">
+            <font>
+                <Font size="28.0" />
+            </font>
+        </Button>
+    </children>
+</VBox>
+    </children>
+</AnchorPane>
+    </children>
 </StackPane>

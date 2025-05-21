@@ -2,6 +2,8 @@ package com.cardgame.blackjack.gui;
 
 import com.cardgame.blackjack.BlackjackGame;
 import com.cardgame.core.Card;
+import static com.cardgame.core.CardImageUtil.createCardImageView;
+import static com.cardgame.core.CardImageUtil.createCardBackImageView;
 import java.util.List;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -10,11 +12,12 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 import javafx.scene.image.ImageView;
-import javafx.scene.image.Image;
 import javafx.scene.layout.Pane;
 import javafx.scene.control.Slider;
 
 public class BlackJackController {
+    @FXML
+    private Button quitButton; // Nút quit
     @FXML 
     private Pane betPane;
     @FXML
@@ -55,10 +58,18 @@ public class BlackJackController {
 
     @FXML
     public void initialize() {
+        if (quitButton != null) {
+            quitButton.setOnAction(e -> handleQuit(null));
+            quitButton.setVisible(false);
+        }
+        if (newGameButton != null) {
+            newGameButton.setVisible(false);
+        }
+
         game = new BlackjackGame();
         playerNameLabel.setText(playerName);
         moneyLabel.setText("Money: $" + game.getPlayer().getChips());
-        // Thiết lập listener cho betSlider
+
         if (betSlider != null && betNumberLabel != null) {
             betSlider.valueProperty().addListener((obs, oldVal, newVal) -> {
                 betNumberLabel.setText(String.valueOf(newVal.intValue()));
@@ -116,19 +127,20 @@ public class BlackJackController {
 
     @FXML
     void handleBetOk(ActionEvent event) {
-        int bet = (int) betSlider.getValue();
+        int currnetBet = (int) betSlider.getValue();
         int maxBet = game.getPlayer().getChips();
-        if (bet > 0 && bet <= maxBet) {
-            currentBet = bet;
-            betLabel.setText("Current Bet: $" + currentBet);
+        if (currnetBet > 0 && currnetBet <= maxBet) {
+            game.setBet(currnetBet);
+            betLabel.setText("Current Bet: $" + currnetBet);
             if (betPane != null) betPane.setVisible(false);
             if (mainGamePane != null) mainGamePane.setVisible(true);
             playerStood = false;
-            game.getPlayer().removeChips(currentBet);
-            moneyLabel.setText("Money: $" + game.getPlayer().getChips());
+            moneyLabel.setText("Money: $" + (game.getPlayer().getChips() - currnetBet));
             game.start();
             hitButton.setDisable(false);
             standButton.setDisable(false);
+            if (newGameButton != null) newGameButton.setVisible(false);
+            if (quitButton != null) quitButton.setVisible(false);
             updateUI();
             if (game.isPlayerBlackjack()) {
                 endPlayerTurn();
@@ -136,6 +148,12 @@ public class BlackJackController {
         } else {
             showAlert("Invalid bet", "Please select a valid bet amount (1-" + maxBet + ")");
         }
+    }
+
+    @FXML
+    void handleQuit(ActionEvent event) {
+        // Thoát ứng dụng
+        javafx.application.Platform.exit();
     }
 
     private void showAlert(String title, String message) {
@@ -150,18 +168,14 @@ public class BlackJackController {
         playerStood = true;
         hitButton.setDisable(true);
         standButton.setDisable(true);
-        game.dealerTurn();
+        game.dealerTurn(); 
         updateUI();
         String result = game.getResultMessage();
-        if (game.isPlayerWin()) {
-            betLabel.setText(result + " + " + currentBet);
-            game.getPlayer().addChips(currentBet * 2);
-            moneyLabel.setText("Money: $" + game.getPlayer().getChips());
-        }
-        else {
-            betLabel.setText(result + " - " + currentBet);
-            moneyLabel.setText("Money: $" + game.getPlayer().getChips());
-        }
+        betLabel.setText(result + " Earn: " + game.getEarnAmount() + "$");
+        moneyLabel.setText("Money: $" + game.getPlayer().getChips());
+        // Hiện hai nút khi có kết quả
+        if (newGameButton != null) newGameButton.setVisible(true);
+        if (quitButton != null) quitButton.setVisible(true);
     }
 
     private void updateUI() {
@@ -188,12 +202,7 @@ public class BlackJackController {
         playerHandLabel.setText("User Card: " + game.getPlayerScore());
     }
 
-    private ImageView createCardBackImageView() {
-        ImageView view = new ImageView(new Image(getClass().getResourceAsStream("/cards/back.png")));
-        view.setFitWidth(60);
-        view.setFitHeight(90);
-        return view;
-    }
+    
 
     private List<Card> getDealerCards() {
         return game.getDealerCards();
@@ -203,13 +212,7 @@ public class BlackJackController {
         return game.getPlayerCards();
     }
 
-    private ImageView createCardImageView(Card card) {
-        String imagePath = "/cards/" + card.getImageFileName();
-        ImageView view = new ImageView(new Image(getClass().getResourceAsStream(imagePath)));
-        view.setFitWidth(60);
-        view.setFitHeight(90);
-        return view;
-    }
+
 
     
 }

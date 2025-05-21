@@ -10,9 +10,22 @@ public class BlackJackGUI extends Application{
     @Override
     public void start(Stage stage) throws Exception {
         Parent root = FXMLLoader.load(getClass().getResource("BlackJack.fxml"));
-        Scene scene = new Scene(root);
+        Scene scene = new Scene(root, 900, 600);
+
+        double baseWidth = 1920;
+        double baseHeight = 1080;
+
+        // Scale đồng đều theo min(width, height) để không méo hình
+        javafx.beans.binding.DoubleBinding scale = javafx.beans.binding.Bindings.createDoubleBinding(
+            () -> Math.min(scene.getWidth() / baseWidth, scene.getHeight() / baseHeight),
+            scene.widthProperty(), scene.heightProperty()
+        );
+        root.scaleXProperty().bind(scale);
+        root.scaleYProperty().bind(scale);
+
         stage.setTitle("Blackjack");
         stage.setScene(scene);
+        stage.setFullScreen(false); // Bật chế độ toàn màn hình
         stage.show();
     }
 

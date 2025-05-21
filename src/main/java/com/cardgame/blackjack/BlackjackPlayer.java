@@ -1,13 +1,12 @@
 package com.cardgame.blackjack;
 
-import com.cardgame.core.Player;
+import com.cardgame.core.ChipPlayer;
 
 /**
  * Represents a player in the Blackjack game
  */
-public class BlackjackPlayer extends Player {
+public class BlackjackPlayer extends ChipPlayer {
     private boolean isDealer;
-    private int chips;
 
     /**
      * Creates a new Blackjack player
@@ -16,49 +15,8 @@ public class BlackjackPlayer extends Player {
      * @param isDealer Whether this player is the dealer
      */
     public BlackjackPlayer(String name, boolean isDealer) {
-        super(name);
+        super(name, isDealer ? 0 : 1000);
         this.isDealer = isDealer;
-        this.chips = isDealer ? 0 : 1000; // Dealer starts with 0 chips
-    }
-
-    /**
-     * Gets the player's current chip count
-     * 
-     * @return The player's chip count
-     */
-    public int getChips() { 
-        return chips; 
-    }
-    
-    /**
-     * Adds chips to the player's chip count
-     * 
-     * @param amount The amount of chips to add
-     * @throws IllegalArgumentException if amount is negative
-     */
-    public void addChips(int amount) {
-        if (amount < 0) {
-            throw new IllegalArgumentException("Cannot add negative chips");
-        }
-        chips += amount; 
-    }
-    
-    /**
-     * Removes chips from the player's chip count
-     * 
-     * @param amount The amount of chips to remove
-     * @return true if the chips were successfully removed, false if the player doesn't have enough chips
-     * @throws IllegalArgumentException if amount is negative
-     */
-    public boolean removeChips(int amount) {
-        if (amount < 0) {
-            throw new IllegalArgumentException("Cannot remove negative chips");
-        }
-        if (chips >= amount) {
-            chips -= amount;
-            return true;
-        }
-        return false;
     }
 
     /**
