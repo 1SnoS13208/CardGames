@@ -1,0 +1,345 @@
+package com.cardgame.tienlen.gui;
+
+import com.cardgame.core.Card;
+import com.cardgame.core.Player;
+import com.cardgame.tienlen.TienLenGame;
+import com.cardgame.core.CardImageUtil;
+import javafx.application.Platform;
+import javafx.event.ActionEvent;
+import javafx.fxml.FXML;
+import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
+import java.util.*;
+
+public class TienLenController {
+    private TienLenGame game;
+    private List<Card> selectedCards = new ArrayList<>();
+    private int playerCount = 4; // Default to 4 players
+
+    @FXML
+    private HBox currentPile;
+
+    @FXML
+    private Pane mainGamePane;
+
+    @FXML
+    private HBox opponent1Cards;
+
+    @FXML
+    private Label opponent1Label;
+
+    @FXML
+    private Label opponent1CardsCount;
+
+    @FXML
+    private HBox opponent2Cards;
+
+    @FXML
+    private Label opponent2Label;
+
+    @FXML
+    private Label opponent2CardsCount;
+
+    @FXML
+    private HBox opponent3Cards;
+
+    @FXML
+    private Label opponent3Label;
+
+    @FXML
+    private Label opponent3CardsCount;
+
+    @FXML
+    private HBox playerCards;
+
+    @FXML
+    private Label statusLabel;
+
+    @FXML
+    void handleNewGame(ActionEvent event) {
+        showPlayerCountDialog();
+    }
+    
+    private void showPlayerCountDialog() {
+        List<Integer> choices = Arrays.asList(2, 3, 4);
+        ChoiceDialog<Integer> dialog = new ChoiceDialog<>(4, choices);
+        dialog.setTitle("Số người chơi");
+        dialog.setHeaderText("Chọn số người chơi");
+        dialog.setContentText("Số người chơi:");
+
+        Optional<Integer> result = dialog.showAndWait();
+        result.ifPresent(count -> {
+            playerCount = count;
+            startNewGame();
+        });
+    }
+    
+    private void startNewGame() {
+        // Initialize game with selected number of players
+        game = new TienLenGame();
+        
+        // Add human players only (no AI)
+        for (int i = 0; i < playerCount; i++) {
+            game.addPlayer(new Player("Người chơi " + (i + 1)));
+        }
+        
+        // Start the game
+        game.start();
+        updateGameState();
+        
+        // Show message for the first player
+        showAlert("Bắt đầu", "Trò chơi bắt đầu! " + game.getCurrentPlayer().getName() + " đi trước.");
+    }
+
+    @FXML
+    void handlePass(ActionEvent event) {
+        if (game == null) {
+            return;
+        }
+        
+        Player currentPlayer = game.getCurrentPlayer();
+        
+        // Player passes
+        boolean moveSuccessful = game.makeMove(currentPlayer, new ArrayList<>());
+        
+        if (moveSuccessful) {
+            selectedCards.clear();
+            updateGameState();
+            
+            // Show message for next player
+            if (!game.isGameOver()) {
+                showAlert("Bỏ lượt", currentPlayer.getName() + " đã bỏ lượt. Đến lượt của: " + 
+                    game.getCurrentPlayer().getName());
+            } else {
+                showGameOver();
+            }
+        }
+    }
+
+    @FXML
+    void handlePlay(ActionEvent event) {
+        if (game == null) {
+            return;
+        }
+        
+        Player currentPlayer = game.getCurrentPlayer();
+        
+        // Make the move with selected cards
+        boolean moveSuccessful = game.makeMove(currentPlayer, new ArrayList<>(selectedCards));
+        
+        if (moveSuccessful) {
+            // Clear selection and update UI
+            selectedCards.clear();
+            updateGameState();
+            
+            // Check if game is over
+            if (game.isGameOver()) {
+                showGameOver();
+            } else {
+                // Show message for next player
+                showAlert("Lượt tiếp theo", "Đến lượt của: " + game.getCurrentPlayer().getName());
+            }
+        } else {
+            showAlert("Nước đi không hợp lệ", currentPlayer.getName() + " không thể đánh các lá bài đã chọn.");
+        }
+    }
+
+    @FXML
+    void handleQuit(ActionEvent event) {
+        // Close the application
+        Platform.exit();
+    }
+    
+    private void updateGameState() {
+        if (game == null) return;
+        
+        // Update player cards visibility based on current player count
+        updatePlayerVisibility();
+        
+        // Update current player's cards
+        updatePlayerCards();
+        
+        // Update opponents' cards
+        List<Player> players = game.getPlayers();
+        if (players.size() > 1) updateOpponentCards(1, opponent1Cards, opponent1Label, opponent1CardsCount);
+        if (players.size() > 2) updateOpponentCards(2, opponent2Cards, opponent2Label, opponent2CardsCount);
+        if (players.size() > 3) updateOpponentCards(3, opponent3Cards, opponent3Label, opponent3CardsCount);
+        
+        // Update current pile
+        updateCurrentPile();
+        
+        // Update status
+        statusLabel.setText("Đến lượt: " + game.getCurrentPlayer().getName());
+    }
+    
+    private void updatePlayerVisibility() {
+        opponent1Cards.setVisible(false);
+        opponent2Cards.setVisible(false);
+        opponent3Cards.setVisible(false);
+        opponent1Label.setVisible(false);
+        opponent2Label.setVisible(false);
+        opponent3Label.setVisible(false);
+        opponent1CardsCount.setVisible(false);
+        opponent2CardsCount.setVisible(false);
+        opponent3CardsCount.setVisible(false);
+        
+        List<Player> players = game.getPlayers();
+        if (players.size() > 1) {
+            opponent1Cards.setVisible(true);
+            opponent1Label.setVisible(true);
+            opponent1CardsCount.setVisible(true);
+        }
+        if (players.size() > 2) {
+            opponent2Cards.setVisible(true);
+            opponent2Label.setVisible(true);
+            opponent2CardsCount.setVisible(true);
+        }
+        if (players.size() > 3) {
+            opponent3Cards.setVisible(true);
+            opponent3Label.setVisible(true);
+            opponent3CardsCount.setVisible(true);
+        }
+    }
+    
+    private void updatePlayerCards() {
+        playerCards.getChildren().clear();
+        
+        // Get human player (assuming it's the first player)
+        Player humanPlayer = game.getPlayers().get(0);
+        List<Card> hand = game.getPlayerHand(humanPlayer);
+        
+        for (Card card : hand) {
+            ImageView cardView = createCardView(card);
+            
+            // Highlight selected cards
+            if (selectedCards.contains(card)) {
+                cardView.setStyle("-fx-effect: dropshadow(gaussian, #00ff00, 20, 0.7, 0, 0);");
+            }
+            
+            // Add click handler to select/deselect cards
+            cardView.setOnMouseClicked(event -> {
+                if (selectedCards.contains(card)) {
+                    selectedCards.remove(card);
+                } else {
+                    selectedCards.add(card);
+                }
+                updateGameState();
+            });
+            
+            playerCards.getChildren().add(cardView);
+        }
+    }
+    
+    private void updateCurrentPile() {
+        currentPile.getChildren().clear();
+        List<Card> pile = game.getCurrentPile();
+        
+        if (pile != null && !pile.isEmpty()) {
+            for (Card card : pile) {
+                ImageView cardView = createCardView(card);
+                currentPile.getChildren().add(cardView);
+            }
+        }
+    }
+    
+    private void updateOpponentCards(int playerIndex, HBox cardsContainer, Label nameLabel, Label cardsCountLabel) {
+        List<Player> players = game.getPlayers();
+        if (players.size() <= playerIndex) {
+            cardsContainer.getChildren().clear();
+            cardsCountLabel.setText("");
+            nameLabel.setText("");
+            return;
+        }
+        
+        Player player = players.get(playerIndex);
+        int cardCount = player.getHand().size();
+        
+        // Update player name and card count
+        nameLabel.setText(player.getName());
+        cardsCountLabel.setText(cardCount + " lá");
+        
+        // Clear and update card backs
+        cardsContainer.getChildren().clear();
+        for (int i = 0; i < cardCount; i++) {
+            ImageView cardBack = new ImageView(new Image(getClass().getResourceAsStream("/cards/back.png")));
+            cardBack.setFitWidth(60);
+            cardBack.setPreserveRatio(true);
+            cardsContainer.getChildren().add(cardBack);
+        }
+    }
+
+    private ImageView createCardView(Card card) {
+}
+
+private void updateCurrentPile() {
+    currentPile.getChildren().clear();
+    List<Card> pile = game.getCurrentPile();
+    
+    if (pile != null && !pile.isEmpty()) {
+        for (Card card : pile) {
+            ImageView cardView = createCardView(card);
+            currentPile.getChildren().add(cardView);
+        }
+    }
+}
+
+private void updateOpponentCards(int playerIndex, HBox cardsContainer, Label nameLabel, Label cardsCountLabel) {
+    List<Player> players = game.getPlayers();
+    if (players.size() <= playerIndex) {
+        cardsContainer.getChildren().clear();
+        cardsCountLabel.setText("");
+        nameLabel.setText("");
+        return;
+    }
+    
+    Player player = players.get(playerIndex);
+    int cardCount = player.getHand().size();
+    
+    // Update player name and card count
+    nameLabel.setText(player.getName());
+    cardsCountLabel.setText(cardCount + " lá");
+    
+    // Clear and update card backs
+    cardsContainer.getChildren().clear();
+    for (int i = 0; i < cardCount; i++) {
+        ImageView cardBack = new ImageView(new Image(getClass().getResourceAsStream("/cards/back.png")));
+        cardBack.setFitWidth(60);
+        cardBack.setPreserveRatio(true);
+        cardsContainer.getChildren().add(cardBack);
+    }
+}
+
+private ImageView createCardView(Card card) {
+    // Use CardImageUtil to create card image view
+    ImageView cardView = CardImageUtil.createCardImageView(card);
+    
+    // Adjust size for the game UI
+    cardView.setFitWidth(80);
+    cardView.setPreserveRatio(true);
+    
+    return cardView;
+}
+
+private void showAlert(String title, String message) {
+    Alert alert = new Alert(Alert.AlertType.INFORMATION);
+    alert.setTitle(title);
+    alert.setHeaderText(null);
+    alert.setContentText(message);
+    alert.showAndWait();
+}
+
+private void showGameOver() {
+    Player winner = game.getPlayers().stream()
+        .filter(p -> p.getHand().isEmpty())
+        .findFirst()
+        .orElse(null);
+        
+    if (winner != null) {
+        showAlert("Kết thúc", "Chúc mừng " + winner.getName() + " đã chiến thắng!");
+    } else {
+        showAlert("Kết thúc", "Trò chơi kết thúc!");
+    }
+}

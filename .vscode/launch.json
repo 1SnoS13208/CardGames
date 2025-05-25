@@ -6,6 +6,43 @@
     "configurations": [
         {
             "type": "java",
+            "name": "TienLenGUI",
+            "request": "launch",
+            "mainClass": "com.cardgame.tienlen.gui.TienLenGUI",
+            "projectName": "CardGame",
+            "vmArgs": "--module-path \"C:/Program Files/Java/javafx-sdk-24.0.1/lib\" --add-modules javafx.controls,javafx.fxml"
+        },
+        {
+            "type": "java",
+            "name": "PokerGame",
+            "request": "launch",
+            "mainClass": "com.cardgame.poker.PokerGame",
+            "projectName": "CardGame"
+        },
+        {
+            "type": "java",
+            "name": "TienLenGame",
+            "request": "launch",
+            "mainClass": "com.cardgame.tienlen.TienLenGame",
+            "projectName": "CardGame"
+        },
+        {
+            "type": "java",
+            "name": "Main",
+            "request": "launch",
+            "mainClass": "com.cardgame.Main",
+            "projectName": "CardGame"
+        },
+        {
+            "type": "java",
+            "name": "BlackJackGUI",
+            "request": "launch",
+            "mainClass": "com.cardgame.blackjack.gui.BlackJackGUI",
+            "projectName": "CardGame",
+            "vmArgs": "--module-path \"C:/Program Files/Java/javafx-sdk-24.0.1/lib\" --add-modules javafx.controls,javafx.fxml"
+        },
+        {
+            "type": "java",
             "name": "BlackJackGUI",
             "request": "launch",
             "mainClass": "com.cardgame.blackjack.gui.BlackJackGUI",

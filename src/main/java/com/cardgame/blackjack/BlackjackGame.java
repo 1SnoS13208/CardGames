@@ -1,13 +1,15 @@
 package com.cardgame.blackjack;
 
-import com.cardgame.core.CasinoStyleGame;
+import com.cardgame.core.DealerGame;
+import com.cardgame.core.ChipPlayer;
+import com.cardgame.core.Player;
 import com.cardgame.core.Card;
 import java.util.List;
 
 /**
  * Implementation of the Blackjack card game, refactored for GUI usage
  */
-public class BlackjackGame extends CasinoStyleGame {
+public class BlackjackGame extends DealerGame {
     private String resultMessage = "";
     private boolean playerStood = false;
     protected int bet = 0;
@@ -15,8 +17,8 @@ public class BlackjackGame extends CasinoStyleGame {
 
     public BlackjackGame() {
         super(new BlackjackScoringStrategy());
-        player = new BlackjackPlayer("Player", false);
-        dealer = new BlackjackPlayer("Dealer", true);
+        player = new ChipPlayer("Player", 1000);
+        dealer = new Player("Dealer");
         reset();
     }
 
@@ -37,7 +39,7 @@ public class BlackjackGame extends CasinoStyleGame {
     }
     public void newRound(int betAmount) {
         this.bet = betAmount;
-        ((BlackjackPlayer) player).removeChips(betAmount); 
+        player.removeChips(betAmount); 
         reset();
         player.addCard(deck.draw());
         dealer.addCard(deck.draw());
@@ -55,7 +57,6 @@ public class BlackjackGame extends CasinoStyleGame {
     }
     public void playerStand() {
         playerStood = true;
-        dealerTurn();
     }
     public boolean isPlayerBust() {
         return scoringStrategy.isBusted(player.getHand());
@@ -126,23 +127,25 @@ public class BlackjackGame extends CasinoStyleGame {
                 earnAmount = bet;
             }
         }
+        System.out.println("Earn amount: " + earnAmount);
         if (earnAmount > 0) {
-            ((BlackjackPlayer) player).addChips(earnAmount);
+            System.out.println("Player chips before: " + player.getChips());
+            player.addChips(earnAmount);
+            System.out.println("Player chips after: " + player.getChips());
         }
     }
 
     @Override
     public boolean isGameOver() {
-        return gameOver || ((BlackjackPlayer) player).getChips() <= 0;
+        return gameOver || player.getChips() <= 0;
     }
 
     @Override
     public void endGame() {
-        // No-op for GUI
     }
 
-    public BlackjackPlayer getPlayer() {
-        return (BlackjackPlayer) player;
+    public ChipPlayer getPlayer() {
+        return player;
     }
 
     @Override
@@ -154,17 +157,13 @@ public class BlackjackGame extends CasinoStyleGame {
         playerStood = false;
     }
 
-    // --- BEGIN: Abstract methods for compatibility with CasinoStyleGame/Game ---
     @Override
     public void playRound() {
-        // No-op: GUI will control game flow via public methods
     }
 
     @Override
     public void start() {
-        // Khi bắt đầu game, chia 2 lá cho player và dealer (giống newRound)
         newRound(this.bet);
     }
-    // --- END: Abstract methods ---
 }
 

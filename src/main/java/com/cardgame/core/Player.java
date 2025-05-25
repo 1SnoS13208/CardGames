@@ -2,6 +2,7 @@ package com.cardgame.core;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -62,6 +63,28 @@ public class Player {
      */
     public List<Card> getHand() { 
         return Collections.unmodifiableList(new ArrayList<>(hand)); 
+    }
+
+    /**
+     * Sắp xếp hand mặc định theo giá trị tăng dần, sau đó là chất (Hearts > Diamonds > Clubs > Spades)
+     */
+    public void sortHand() {
+        if (hand == null || hand.isEmpty()) return;
+        hand.sort((Card a, Card b) -> {
+            int valueCompare = Integer.compare(a.getValue(), b.getValue());
+            if (valueCompare != 0) return valueCompare;
+            int suitA = a.getSuitOrder();
+            int suitB = b.getSuitOrder();
+            return Integer.compare(suitA, suitB);
+        });
+    }
+
+    /**
+     * Sắp xếp hand với comparator tuỳ ý (dùng cho các game khác nhau)
+     */
+    public void sortHand(Comparator<Card> comparator) {
+        if (hand == null || hand.isEmpty() || comparator == null) return;
+        hand.sort(comparator);
     }
 
     /**

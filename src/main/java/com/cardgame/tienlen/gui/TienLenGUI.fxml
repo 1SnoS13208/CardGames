@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.shape.Rectangle?>
+<?import javafx.geometry.Insets?>
+
+<StackPane fx:id="root" style="-fx-background-color: #0a5c36;" 
+          xmlns="http://javafx.com/javafx/19" 
+          xmlns:fx="http://javafx.com/fxml/1" 
+          fx:controller="com.cardgame.tienlen.gui.TienLenController">
+    
+    <!-- Background - sử dụng màu nền thay vì hình ảnh -->
+    <Rectangle width="800" height="600" fill="#0a5c36" />
+    
+    <!-- Image cho background - chỉnh sử a đường dẫn cho đúng -->
+    <ImageView fitHeight="-1" fitWidth="-1" pickOnBounds="true" preserveRatio="false" 
+               StackPane.alignment="CENTER">
+        <image>
+            <Image url="@../../../../resources/board/CasinoBoard.png" />
+        </image>
+    </ImageView>
+    
+    <!-- Player Selection Panel -->
+    <VBox fx:id="playerSelectionPanel" alignment="CENTER" spacing="20" style="-fx-background-color: rgba(0,0,0,0.7); -fx-padding: 30; -fx-background-radius: 15;" 
+          visible="true" StackPane.alignment="CENTER">
+        <Label text="Tiến Lên Card Game" style="-fx-text-fill: white; -fx-font-size: 32px; -fx-font-weight: bold;" />
+        <Label text="Chọn số người chơi" style="-fx-text-fill: white; -fx-font-size: 24px; -fx-font-weight: bold; -fx-padding: 0 0 20 0;" />
+        
+        <HBox alignment="CENTER" spacing="20">
+            <!-- Vì chúng ta đã cố định 4 người chơi, chỉ cần 1 nút bắt đầu trò chơi -->
+            <Button fx:id="fourPlayersBtn" onAction="#handlePlayerSelection" userData="4"
+                    style="-fx-background-color: #3498db; -fx-text-fill: white; -fx-font-size: 22px; -fx-min-width: 200px; -fx-min-height: 100px; -fx-background-radius: 10;"
+                    text="Bắt đầu trò chơi" />
+        </HBox>
+    </VBox>
+    
+    <BorderPane fx:id="mainGamePane" style="-fx-background-color: transparent;" visible="false">
+        <!-- Menu Buttons in top region with a StackPane to allow overlaying with opponent1 -->
+        <top>
+            <StackPane>
+                <!-- Top opponent -->
+                <VBox alignment="CENTER" spacing="5" style="-fx-padding: 20 20 0 20;" StackPane.alignment="CENTER">
+                    <Label style="-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 1.5em;" text="Đối thủ 2" />
+                    <Label fx:id="opponent2CardsCount" style="-fx-text-fill: white; -fx-font-size: 1.2em;" text="13 lá" />
+                    <HBox fx:id="opponent2Cards" alignment="CENTER" spacing="-40" style="-fx-padding: 10; -fx-min-height: 100;" />
+                </VBox>
+                
+                <!-- Menu buttons at the top-left corner -->
+                <HBox alignment="CENTER_LEFT" spacing="15" style="-fx-padding: 10;" StackPane.alignment="TOP_LEFT">
+                    <Button fx:id="newGameButton" onAction="#handleNewGame" 
+                            style="-fx-background-color: #3498db; -fx-text-fill: white; -fx-font-weight: bold; -fx-min-width: 120; -fx-min-height: 30; -fx-font-size: 1em;" 
+                            text="Trò chơi mới" />
+                    <Button fx:id="quitButton" onAction="#handleQuit" 
+                            style="-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-weight: bold; -fx-min-width: 80; -fx-min-height: 30; -fx-font-size: 1em;" 
+                            text="Thoát" />
+                </HBox>
+            </StackPane>
+        </top>
+        
+        <!-- Left: Player opponent -->
+        <left>
+            <VBox alignment="CENTER" spacing="5" style="-fx-padding: 20;" BorderPane.alignment="CENTER">
+                <Label style="-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 1.5em;" text="Đối thủ 1" />
+                <Label fx:id="opponent1CardsCount" style="-fx-text-fill: white; -fx-font-size: 1.2em;" text="13 lá" />
+                <VBox fx:id="opponent1Cards" alignment="CENTER" spacing="-5" style="-fx-padding: 10; -fx-min-width: 100;" />
+            </VBox>
+        </left>
+        
+        <!-- Right: Player opponent -->
+        <right>
+            <VBox alignment="CENTER" spacing="5" style="-fx-padding: 20;" BorderPane.alignment="CENTER">
+                <Label style="-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 1.5em;" text="Đối thủ 3" />
+                <Label fx:id="opponent3CardsCount" style="-fx-text-fill: white; -fx-font-size: 1.2em;" text="13 lá" />
+                <VBox fx:id="opponent3Cards" alignment="CENTER" spacing="-5" style="-fx-padding: 10; -fx-min-width: 100;" />
+            </VBox>
+        </right>
+        
+        <!-- Center: Current pile -->
+        <center>
+            <VBox alignment="CENTER" spacing="10" BorderPane.alignment="CENTER">
+                <Label style="-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 1.5em;" text="Bài đang chơi" />
+                <HBox fx:id="currentPile" alignment="CENTER" spacing="-20" style="-fx-padding: 10; -fx-min-height: 150;" />
+            </VBox>
+        </center>
+        
+        <!-- Bottom: Current player -->
+        <bottom>
+            <VBox alignment="CENTER" spacing="10" style="-fx-padding: 20;" BorderPane.alignment="CENTER">
+                <Label style="-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 1.5em;" text="Bài của bạn" />
+                <Label fx:id="statusLabel" style="-fx-text-fill: white; -fx-font-size: 1.2em; -fx-font-weight: bold;" text="Chờ đến lượt..." />
+                <HBox fx:id="playerCards" alignment="CENTER" spacing="-40" style="-fx-padding: 10; -fx-min-height: 150;" />
+                
+                <!-- Control Buttons -->
+                <HBox alignment="CENTER" spacing="20" style="-fx-padding: 10;">
+                    <Button fx:id="playButton" onAction="#handlePlay" 
+                            style="-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-weight: bold; -fx-min-width: 120; -fx-min-height: 50; -fx-font-size: 1.2em;" 
+                            text="Đánh" />
+                    <Button fx:id="passButton" onAction="#handlePass" 
+                            style="-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-weight: bold; -fx-min-width: 120; -fx-min-height: 50; -fx-font-size: 1.2em;" 
+                            text="Bỏ lượt" />
+                </HBox>
+            </VBox>
+        </bottom>
+    </BorderPane>
+</StackPane>

@@ -15,7 +15,6 @@ public class BlackJackGUI extends Application{
         double baseWidth = 1920;
         double baseHeight = 1080;
 
-        // Scale đồng đều theo min(width, height) để không méo hình
         javafx.beans.binding.DoubleBinding scale = javafx.beans.binding.Bindings.createDoubleBinding(
             () -> Math.min(scene.getWidth() / baseWidth, scene.getHeight() / baseHeight),
             scene.widthProperty(), scene.heightProperty()
@@ -25,7 +24,7 @@ public class BlackJackGUI extends Application{
 
         stage.setTitle("Blackjack");
         stage.setScene(scene);
-        stage.setFullScreen(false); // Bật chế độ toàn màn hình
+        stage.setFullScreen(true);
         stage.show();
     }
 

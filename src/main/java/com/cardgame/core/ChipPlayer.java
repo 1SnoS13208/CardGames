@@ -1,9 +1,9 @@
 package com.cardgame.core;
 
 /**
- * Abstract class for players that use chips (betting games)
+ * Class for players that use chips (betting games)
  */
-public abstract class ChipPlayer extends Player {
+public class ChipPlayer extends Player {
     protected int chips;
 
     /**

@@ -82,4 +82,17 @@ public class Card {
         else rankShort = rank;
         return rankShort + "-" + suitChar + ".png";
     }
+
+    /**
+     * Quy đổi tên chất sang thứ tự số để so sánh (Hearts > Diamonds > Clubs > Spades)
+     */
+    public int getSuitOrder() {
+        switch (getSuit().toLowerCase()) {
+            case "hearts": return 3;
+            case "diamonds": return 2;
+            case "clubs": return 1;
+            case "spades": return 0;
+            default: return -1;
+        }
+    }
 }

@@ -19,21 +19,25 @@ public class BlackjackScoringStrategy implements ScoringStrategy {
     public int calculateScore(List<Card> hand) {
         int score = 0;
         int aces = 0;
-        
-        // First pass: count all cards, treating Aces as 11
         for (Card card : hand) {
-            score += card.getValue();
-            if (card.getRank().equals("A")) {
+            String rank = card.getRank();
+            if (rank.equals("A")) {
+                score += 11;
                 aces++;
+            } else if (rank.equals("K") || rank.equals("Q") || rank.equals("J")) {
+                score += 10;
+            } else {
+                try {
+                    score += card.getValue();
+                } catch (NumberFormatException e) {
+                }
             }
         }
         
-        // Adjust for Aces if needed
         while (score > 21 && aces > 0) {
-            score -= 10; // Change Ace value from 11 to 1
+            score -= 10;
             aces--;
         }
-        
         return score;
     }
     

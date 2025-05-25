@@ -11,7 +11,6 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
-import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
 import javafx.scene.control.Slider;
 
@@ -113,9 +112,9 @@ public class BlackJackController {
     private void showBetPane() {
         int maxBet = game.getPlayer().getChips();
         if (betSlider != null) {
-            betSlider.setMin(1);
+            betSlider.setMin(10);
             betSlider.setMax(maxBet);
-            betSlider.setValue(Math.min(currentBet > 0 ? currentBet : 1, maxBet));
+            betSlider.setValue(Math.min(currentBet > 0 ? currentBet : 10, maxBet));
         }
         if (betNumberLabel != null && betSlider != null) {
             betNumberLabel.setText(String.valueOf((int)betSlider.getValue()));
@@ -211,9 +210,5 @@ public class BlackJackController {
     private List<Card> getPlayerCards() {
         return game.getPlayerCards();
     }
-
-
-
-    
 }
 
