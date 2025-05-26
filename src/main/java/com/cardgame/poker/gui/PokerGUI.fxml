@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.paint.Color?>
+<?import javafx.scene.text.Font?>
+
+<BorderPane fx:id="root" prefHeight="800" prefWidth="1200" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.cardgame.poker.gui.PokerController">
+    <top>
+        <HBox alignment="CENTER" style="-fx-background-color: #2c3e50;" BorderPane.alignment="CENTER">
+            <Label text="Texas Hold'em Poker" textFill="WHITE" style="-fx-font-size: 24; -fx-padding: 15; -fx-font-weight: bold;"/>
+        </HBox>
+    </top>
+    
+    <center>
+        <VBox alignment="CENTER" spacing="20" BorderPane.alignment="CENTER">
+            <!-- Community Cards -->
+            <VBox alignment="CENTER" spacing="10" style="-fx-background-color: #2ecc71; -fx-padding: 20; -fx-background-radius: 10; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 10, 0, 0, 5);" maxWidth="Infinity">
+                <Label text="Community Cards" style="-fx-text-fill: white; -fx-font-size: 18; -fx-font-weight: bold;"/>
+                <HBox id="communityCards" alignment="CENTER" spacing="10">
+                    <!-- Community cards will be added here dynamically -->
+                </HBox>
+            </VBox>
+            
+            <!-- Pot and Current Bet -->
+            <HBox alignment="CENTER" spacing="30">
+                <VBox alignment="CENTER" spacing="5">
+                    <Label text="POT" style="-fx-text-fill: #7f8c8d; -fx-font-size: 14;"/>
+                    <Label fx:id="potLabel" text="$0" style="-fx-text-fill: #f1c40f; -fx-font-size: 24; -fx-font-weight: bold;"/>
+                </VBox>
+                <VBox alignment="CENTER" spacing="5">
+                    <Label text="CURRENT BET" style="-fx-text-fill: #7f8c8d; -fx-font-size: 14;"/>
+                    <Label fx:id="currentBetLabel" text="$0" style="-fx-text-fill: #e74c3c; -fx-font-size: 24; -fx-font-weight: bold;"/>
+                </VBox>
+            </HBox>
+            
+            <!-- Players Area -->
+            <GridPane hgap="20" vgap="20" alignment="CENTER">
+                <columnConstraints>
+                    <ColumnConstraints hgrow="SOMETIMES" minWidth="300" />
+                    <ColumnConstraints hgrow="SOMETIMES" minWidth="300" />
+                </columnConstraints>
+                <rowConstraints>
+                    <RowConstraints vgrow="SOMETIMES" />
+                    <RowConstraints vgrow="SOMETIMES" />
+                </rowConstraints>
+                
+                <!-- Player slots will be added here dynamically -->
+            </GridPane>
+        </VBox>
+    </center>
+    
+    <bottom>
+        <VBox alignment="CENTER" spacing="15" style="-fx-background-color: #34495e; -fx-padding: 15;" BorderPane.alignment="CENTER">
+            <!-- Player Controls -->
+            <HBox alignment="CENTER" spacing="10">
+                <Button fx:id="foldButton" text="FOLD" style="-fx-base: #e74c3c; -fx-text-fill: white; -fx-font-weight: bold; -fx-pref-width: 100;" />
+                <Button fx:id="checkButton" text="CHECK" style="-fx-base: #3498db; -fx-text-fill: white; -fx-font-weight: bold; -fx-pref-width: 100;" />
+                <Button fx:id="callButton" text="CALL $0" style="-fx-base: #2ecc71; -fx-text-fill: white; -fx-font-weight: bold; -fx-pref-width: 100;" />
+                <HBox alignment="CENTER" spacing="5">
+                    <Button fx:id="raiseButton" text="RAISE" style="-fx-base: #f39c12; -fx-text-fill: white; -fx-font-weight: bold; -fx-pref-width: 100;" />
+                    <TextField fx:id="raiseAmount" promptText="Amount" style="-fx-pref-width: 100;" />
+                </HBox>
+            </HBox>
+            
+            <!-- Player Cards -->
+            <HBox id="playerCards" alignment="CENTER" spacing="10">
+                <!-- Player's cards will be added here -->
+            </HBox>
+            
+            <!-- Game Log -->
+            <TextArea fx:id="gameLog" prefHeight="100" prefWidth="1000" wrapText="true" 
+                     editable="false" style="-fx-control-inner-background: #2c3e50; -fx-text-fill: white; -fx-font-family: monospace;" />
+        </VBox>
+    </bottom>
+</BorderPane>

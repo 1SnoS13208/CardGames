@@ -1,15 +1,19 @@
 package com.cardgame.poker;
 
-
 import com.cardgame.core.ChipPlayer;
-import com.cardgame.core.Card;
+import java.util.Scanner;
 
 /**
  * Represents a player in the Poker game
  */
+/**
+ * Represents a player in a poker game
+ */
 public class PokerPlayer extends ChipPlayer {
     private int currentBet;
     private boolean hasFolded;
+    private boolean isAllIn;
+    private final Scanner scanner;
 
     /**
      * Creates a new Poker player
@@ -20,46 +24,8 @@ public class PokerPlayer extends ChipPlayer {
         super(name, 1000);
         this.currentBet = 0;
         this.hasFolded = false;
-    }
-
-    /**
-     * Gets the player's current chip count
-     * 
-     * @return The player's chip count
-     */
-    public int getChips() { 
-        return chips; 
-    }
-    
-    /**
-     * Adds chips to the player's chip count
-     * 
-     * @param amount The amount of chips to add
-     * @throws IllegalArgumentException if amount is negative
-     */
-    public void addChips(int amount) {
-        if (amount < 0) {
-            throw new IllegalArgumentException("Cannot add negative chips");
-        }
-        chips += amount; 
-    }
-    
-    /**
-     * Removes chips from the player's chip count
-     * 
-     * @param amount The amount of chips to remove
-     * @return true if the chips were successfully removed, false if the player doesn't have enough chips
-     * @throws IllegalArgumentException if amount is negative
-     */
-    public boolean removeChips(int amount) {
-        if (amount < 0) {
-            throw new IllegalArgumentException("Cannot remove negative chips");
-        }
-        if (chips >= amount) {
-            chips -= amount;
-            return true;
-        }
-        return false;
+        this.isAllIn = false;
+        this.scanner = new Scanner(System.in);
     }
 
     /**
@@ -68,7 +34,7 @@ public class PokerPlayer extends ChipPlayer {
      * @param amount The amount to bet
      * @return true if the bet was placed successfully, false otherwise
      */
-    public boolean placeBet(int amount) {
+    public boolean bet(int amount) {
         if (amount <= 0) {
             throw new IllegalArgumentException("Bet amount must be positive");
         }
@@ -135,8 +101,86 @@ public class PokerPlayer extends ChipPlayer {
      * 
      * @return A string representation of the player
      */
+    /**
+     * Gets the player's action for the current game state
+     * 
+     * @param game The current poker game
+     * @return The player's chosen action
+     */
+    public PlayerAction getAction(PokerGame game) {
+        if (isAllIn || hasFolded) {
+            return new PlayerAction(ActionType.FOLD);
+        }
+        
+        System.out.println("\n" + getName() + "'s turn");
+        System.out.println("Your hand: " + getHand());
+        System.out.println("Your chips: " + getChips());
+        System.out.println("Current bet: " + game.getCurrentBet());
+        System.out.println("Your current bet: " + currentBet);
+        System.out.println("Pot: " + game.getPot());
+        System.out.println("Community cards: " + game.getCommunityCards());
+        
+        // If no bet has been made, player can check or bet
+        if (game.getCurrentBet() == 0) {
+            System.out.println("Options: (1) Check, (2) Bet, (3) Fold");
+            int choice = getIntInput("Enter your choice: ", 1, 3);
+            
+            if (choice == 1) {
+                return new PlayerAction(ActionType.CHECK);
+            } else if (choice == 2) {
+                int maxBet = getChips();
+                int betAmount = getIntInput("Enter bet amount (1-" + maxBet + "): ", 1, maxBet);
+                return new PlayerAction(ActionType.RAISE, betAmount);
+            } else {
+                return new PlayerAction(ActionType.FOLD);
+            }
+        } else {
+            // If there's a bet, player can call, raise, or fold
+            int callAmount = game.getCurrentBet() - currentBet;
+            System.out.println("Options: (1) Call " + callAmount + ", (2) Raise, (3) Fold");
+            int choice = getIntInput("Enter your choice: ", 1, 3);
+            
+            if (choice == 1) {
+                if (callAmount >= getChips()) {
+                    return new PlayerAction(ActionType.ALL_IN);
+                }
+                return new PlayerAction(ActionType.CALL);
+            } else if (choice == 2) {
+                int maxRaise = getChips() - callAmount;
+                int raiseTo = getIntInput(
+                    "Enter total bet amount (" + (game.getCurrentBet() + 1) + "-" + 
+                    (game.getCurrentBet() + maxRaise) + "): ", 
+                    game.getCurrentBet() + 1, 
+                    game.getCurrentBet() + maxRaise
+                );
+                return new PlayerAction(ActionType.RAISE, raiseTo);
+            } else {
+                return new PlayerAction(ActionType.FOLD);
+            }
+        }
+    }
+    
+    /**
+     * Helper method to get integer input from the player
+     */
+    private int getIntInput(String prompt, int min, int max) {
+        while (true) {
+            try {
+                System.out.print(prompt);
+                int input = Integer.parseInt(scanner.nextLine().trim());
+                if (input >= min && input <= max) {
+                    return input;
+                }
+                System.out.println("Please enter a number between " + min + " and " + max);
+            } catch (NumberFormatException e) {
+                System.out.println("Invalid input. Please enter a number.");
+            }
+        }
+    }
+    
     @Override
     public String toString() {
-        return getName() + " (Chips: " + chips + ", Bet: " + currentBet + "): " + getHand();
+        return getName() + " (Chips: " + getChips() + ", Bet: " + currentBet + 
+               (hasFolded ? ", FOLDED" : "") + (isAllIn ? ", ALL-IN" : "") + "): " + getHand();
     }
 }

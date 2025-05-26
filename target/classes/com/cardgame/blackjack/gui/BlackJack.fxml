@@ -24,14 +24,14 @@
         <Pane fx:id="mainGamePane" focusTraversable="true" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="1080.0" prefWidth="1920.0">
             <children>
                 <!-- Dealer Section -->
-                <VBox alignment="CENTER" layoutX="858.0" layoutY="20.0" prefHeight="180.0" prefWidth="100.0">
+                <VBox alignment="CENTER" layoutX="886.0" layoutY="22.0" prefHeight="180.0" prefWidth="100.0">
                     <children>
                       <Label style="-fx-text-fill: white;" text="Dealer">
                           <font>
                         <Font name="System Bold" size="36.0" />
                      </font>
                       </Label>
-                        <ImageView fitHeight="200.0" fitWidth="200.0" pickOnBounds="true" preserveRatio="true">
+                        <ImageView fitHeight="150.0" fitWidth="150.0" pickOnBounds="true" preserveRatio="true">
                             <image>
                                 <Image url="/avatar/Dealer.jpg" />
                             </image>
@@ -57,14 +57,14 @@
                 </Label>
                 <HBox fx:id="playerCardsArea" alignment="CENTER" layoutX="698.0" layoutY="581.0" prefHeight="200.0" prefWidth="526.0" spacing="10.0" />
                 <!-- Player Section -->
-                <VBox alignment="CENTER" layoutX="860.0" layoutY="773.0" prefHeight="100.0" prefWidth="100.0">
+                <VBox alignment="CENTER" layoutX="883.0" layoutY="783.0" prefHeight="100.0" prefWidth="100.0">
                     <children>
                         <Label fx:id="moneyLabel" alignment="CENTER" maxWidth="350.0" prefHeight="54.0" prefWidth="350.0" style="-fx-text-fill: white;" text="Money field" textAlignment="CENTER" wrapText="true">
                             <font>
                         <Font name="System Bold" size="24.0" />
                      </font>
                         </Label>
-                        <ImageView fitHeight="199.0" fitWidth="200.0" pickOnBounds="true" preserveRatio="true">
+                        <ImageView fitHeight="150.0" fitWidth="150.0" pickOnBounds="true" preserveRatio="true">
                             <image>
                                 <Image url="/avatar/Player.jpg" />
                             </image>

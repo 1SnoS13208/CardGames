@@ -8,9 +8,9 @@ import java.util.Scanner;
  * Abstract base class for multiplayer card games without a dealer
  * This is for games where players compete against each other rather than against a dealer
  */
-public abstract class MultiplayerGame implements Game {
+public abstract class MultiplayerGame<P extends Player> implements Game {
     protected Deck deck;
-    protected List<Player> players;
+    protected List<P> players;
     protected boolean gameOver;
     protected Scanner scanner;
     protected int currentPlayerIndex;
@@ -31,7 +31,7 @@ public abstract class MultiplayerGame implements Game {
      * 
      * @param player The player to add
      */
-    public void addPlayer(Player player) {
+    public void addPlayer(P player) {
         if (player == null) {
             throw new IllegalArgumentException("Player cannot be null");
         }
@@ -43,7 +43,7 @@ public abstract class MultiplayerGame implements Game {
      * 
      * @return The current player
      */
-    protected Player getCurrentPlayer() {
+    protected P getCurrentPlayer() {
         if (players.isEmpty()) {
             throw new IllegalStateException("No players in the game");
         }
@@ -70,6 +70,14 @@ public abstract class MultiplayerGame implements Game {
     }
     
     /**
+     * Gets the list of players in the game.
+     * @return A list of players.
+     */
+    public List<P> getPlayers() {
+        return new ArrayList<>(players);
+    }
+
+    /**
      * Shuffles the deck if the number of remaining cards is less than the specified minimum
      * 
      * @param minCards The minimum number of cards required
@@ -89,4 +97,6 @@ public abstract class MultiplayerGame implements Game {
             scanner.close();
         }
     }
+
+    public abstract void start();
 }

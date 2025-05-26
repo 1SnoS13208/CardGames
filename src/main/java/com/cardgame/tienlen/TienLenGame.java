@@ -7,14 +7,14 @@ import java.util.*;
  * Implementation of the Vietnamese card game Tiến Lên (Vietnamese: Tiến lên miền Nam).
  * This is a shedding-type game where the objective is to be the first to play all cards.
  */
-public class TienLenGame extends MultiplayerGame {
+public class TienLenGame extends MultiplayerGame<TienLenPlayer> {
     private TienLenHandEvaluator evaluator;
     private List<Card> currentPile;
     private int startingPlayerIndex;
     private int currentWinnerIndex;
     private boolean gameStarted;
     private List<Card> deck;
-    private Map<Player, List<Card>> playerHands;
+    private Map<TienLenPlayer, List<Card>> playerHands;
     private int passCount; // Count consecutive passes
     private static final int CARDS_PER_PLAYER = 13;
     private static final int MAX_PLAYERS = 4;
@@ -28,6 +28,16 @@ public class TienLenGame extends MultiplayerGame {
         this.gameStarted = false;
         this.playerHands = new HashMap<>();
         this.passCount = 0;
+    }
+
+    // Getter for the hand evaluator
+    public TienLenHandEvaluator getEvaluator() {
+        return evaluator;
+    }
+
+    // Getter for isFirstMove status
+    public boolean isFirstMove() {
+        return isFirstMove;
     }
 
     @Override
@@ -58,7 +68,7 @@ public class TienLenGame extends MultiplayerGame {
 
         // Deal cards to players
         playerHands.clear();
-        for (Player player : players) {
+        for (TienLenPlayer player : players) {
             List<Card> hand = new ArrayList<>();
             for (int i = 0; i < CARDS_PER_PLAYER; i++) {
                 if (deck.isEmpty()) break;
@@ -93,7 +103,7 @@ public class TienLenGame extends MultiplayerGame {
 
     private void findStartingPlayer() {
         for (int i = 0; i < players.size(); i++) {
-            Player player = players.get(i);
+            TienLenPlayer player = players.get(i);
             List<Card> hand = playerHands.get(player);
             for (Card card : hand) {
                 if (card.getRank().equals("3") && card.getSuit().equalsIgnoreCase("Spades")) {
@@ -112,7 +122,7 @@ public class TienLenGame extends MultiplayerGame {
      * Gets the current player whose turn it is
      * @return The current player
      */
-    public Player getCurrentPlayer() {
+    public TienLenPlayer getCurrentPlayer() {
         return players.get(currentPlayerIndex);
     }
     
@@ -133,7 +143,7 @@ public class TienLenGame extends MultiplayerGame {
      * @param player The player who is passing
      * @return true if passing is allowed, false otherwise
      */
-    public boolean passTurn(Player player) {
+    public boolean passTurn(TienLenPlayer player) {
         if (!gameStarted || !getCurrentPlayer().equals(player)) {
             return false;
         }
@@ -160,7 +170,7 @@ public class TienLenGame extends MultiplayerGame {
         return true;
     }
     
-    public boolean makeMove(Player player, List<Card> cards) {
+    public boolean makeMove(TienLenPlayer player, List<Card> cards) {
         if (!gameStarted || !getCurrentPlayer().equals(player)) {
             return false;
         }
@@ -238,14 +248,18 @@ public class TienLenGame extends MultiplayerGame {
     }
 
     // Get the list of players
-    public List<Player> getPlayers() {
-        return new ArrayList<>(players);
+    @Override 
+    public List<TienLenPlayer> getPlayers() {
+        return new ArrayList<>(this.players); 
     }
     
     // Get a player's hand
-    public List<Card> getPlayerHand(Player player) {
-        List<Card> hand = playerHands.get(player);
-        return hand != null ? new ArrayList<>(hand) : new ArrayList<>();
+    public List<Card> getPlayerHand(Player player) { 
+        List<Card> hand = playerHands.get(player); 
+        if (player instanceof TienLenPlayer) {
+            return hand != null ? new ArrayList<>(hand) : new ArrayList<>();
+        }
+        return new ArrayList<>(); 
     }
     
     // Get the current pile of cards

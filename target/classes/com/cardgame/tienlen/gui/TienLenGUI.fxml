@@ -4,106 +4,105 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
-<?import javafx.scene.layout.*?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.shape.Rectangle?>
-<?import javafx.geometry.Insets?>
 
-<StackPane fx:id="root" style="-fx-background-color: #0a5c36;" 
-          xmlns="http://javafx.com/javafx/19" 
-          xmlns:fx="http://javafx.com/fxml/1" 
-          fx:controller="com.cardgame.tienlen.gui.TienLenController">
+<StackPane fx:id="root" style="-fx-background-color: #0a5c36;" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.cardgame.tienlen.gui.TienLenController">
     
     <!-- Background - sử dụng màu nền thay vì hình ảnh -->
-    <Rectangle width="800" height="600" fill="#0a5c36" />
+    <Rectangle fill="#0a5c36" height="600" width="800" />
     
     <!-- Image cho background - chỉnh sử a đường dẫn cho đúng -->
-    <ImageView fitHeight="-1" fitWidth="-1" pickOnBounds="true" preserveRatio="false" 
-               StackPane.alignment="CENTER">
+    <ImageView fitHeight="-1" fitWidth="-1" pickOnBounds="true" preserveRatio="false" StackPane.alignment="CENTER">
         <image>
             <Image url="@../../../../resources/board/CasinoBoard.png" />
         </image>
     </ImageView>
     
     <!-- Player Selection Panel -->
-    <VBox fx:id="playerSelectionPanel" alignment="CENTER" spacing="20" style="-fx-background-color: rgba(0,0,0,0.7); -fx-padding: 30; -fx-background-radius: 15;" 
-          visible="true" StackPane.alignment="CENTER">
-        <Label text="Tiến Lên Card Game" style="-fx-text-fill: white; -fx-font-size: 32px; -fx-font-weight: bold;" />
-        <Label text="Chọn số người chơi" style="-fx-text-fill: white; -fx-font-size: 24px; -fx-font-weight: bold; -fx-padding: 0 0 20 0;" />
+    <VBox fx:id="playerSelectionPanel" alignment="CENTER" spacing="20" style="-fx-background-color: rgba(0,0,0,0.7); -fx-padding: 30; -fx-background-radius: 15;" StackPane.alignment="CENTER">
+        <Label style="-fx-text-fill: white; -fx-font-size: 32px; -fx-font-weight: bold;" text="Tiến Lên Card Game" />
+        <Label fx:id="modeSelectionPromptLabel" style="-fx-text-fill: white; -fx-font-size: 24px; -fx-font-weight: bold; -fx-padding: 0 0 20 0;" text="Choose Game Mode" />
         
         <HBox alignment="CENTER" spacing="20">
-            <!-- Vì chúng ta đã cố định 4 người chơi, chỉ cần 1 nút bắt đầu trò chơi -->
-            <Button fx:id="fourPlayersBtn" onAction="#handlePlayerSelection" userData="4"
-                    style="-fx-background-color: #3498db; -fx-text-fill: white; -fx-font-size: 22px; -fx-min-width: 200px; -fx-min-height: 100px; -fx-background-radius: 10;"
-                    text="Bắt đầu trò chơi" />
+            <Button fx:id="playWithAIButton" onAction="#handleModeSelection" style="-fx-background-color: #2980b9; -fx-text-fill: white; -fx-font-size: 20px; -fx-min-width: 250px; -fx-min-height: 70px; -fx-background-radius: 10;" text="Play with AI" />
+            <Button fx:id="playManuallyButton" onAction="#handleModeSelection" style="-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-size: 20px; -fx-min-width: 250px; -fx-min-height: 70px; -fx-background-radius: 10;" text="Play Manually (Hotseat)" />
         </HBox>
+
+        <!-- Player Count Selection Panel (initially hidden) -->
+        <VBox fx:id="playerCountSelectionVBox" alignment="CENTER" spacing="15" visible="false" managed="false" style="-fx-padding: 20 0 0 0;">
+            <Label fx:id="playerCountPromptLabel" style="-fx-text-fill: white; -fx-font-size: 20px; -fx-font-weight: bold; -fx-padding: 0 0 10 0;" text="Select Number of Players" />
+            <Button fx:id="twoPlayersBtn" onAction="#handlePlayerCountSelection" style="-fx-background-color: #3498db; -fx-text-fill: white; -fx-font-size: 18px; -fx-min-width: 180px; -fx-min-height: 60px; -fx-background-radius: 10;" text="2 Players" />
+            <Button fx:id="threePlayersBtn" onAction="#handlePlayerCountSelection" style="-fx-background-color: #3498db; -fx-text-fill: white; -fx-font-size: 18px; -fx-min-width: 180px; -fx-min-height: 60px; -fx-background-radius: 10;" text="3 Players" />
+            <Button fx:id="fourPlayersBtn" onAction="#handlePlayerCountSelection" style="-fx-background-color: #3498db; -fx-text-fill: white; -fx-font-size: 18px; -fx-min-width: 180px; -fx-min-height: 60px; -fx-background-radius: 10;" text="4 Players" />
+        </VBox>
     </VBox>
     
     <BorderPane fx:id="mainGamePane" style="-fx-background-color: transparent;" visible="false">
-        <!-- Menu Buttons in top region with a StackPane to allow overlaying with opponent1 -->
         <top>
-            <StackPane>
-                <!-- Top opponent -->
-                <VBox alignment="CENTER" spacing="5" style="-fx-padding: 20 20 0 20;" StackPane.alignment="CENTER">
-                    <Label style="-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 1.5em;" text="Đối thủ 2" />
-                    <Label fx:id="opponent2CardsCount" style="-fx-text-fill: white; -fx-font-size: 1.2em;" text="13 lá" />
+            <HBox alignment="CENTER_LEFT" spacing="15" style="-fx-padding: 10; -fx-background-color: rgba(0,0,0,0.5);">
+                <Button fx:id="newGameButton" onAction="#handleNewGame" style="-fx-background-color: #3498db; -fx-text-fill: white; -fx-font-weight: bold; -fx-min-width: 120; -fx-min-height: 30; -fx-font-size: 1em;" text="New Game" />
+                <Button fx:id="quitButton" onAction="#handleQuit" style="-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-weight: bold; -fx-min-width: 80; -fx-min-height: 30; -fx-font-size: 1em;" text="Quit" />
+            </HBox>
+        </top>
+        
+        <center>
+            <GridPane alignment="CENTER" style="-fx-padding: 20;">
+                <columnConstraints>
+                    <ColumnConstraints hgrow="ALWAYS" minWidth="200" prefWidth="200" />
+                    <ColumnConstraints hgrow="ALWAYS" minWidth="400" prefWidth="400" />
+                    <ColumnConstraints hgrow="ALWAYS" minWidth="200" prefWidth="200" />
+                </columnConstraints>
+                <rowConstraints>
+                    <RowConstraints minHeight="150" prefHeight="150" vgrow="ALWAYS" />
+                    <RowConstraints minHeight="200" prefHeight="200" vgrow="ALWAYS" />
+                    <RowConstraints minHeight="150" prefHeight="150" vgrow="ALWAYS" />
+                </rowConstraints>
+                
+                <!-- Top opponent (row 0, column 1) -->
+                <VBox alignment="CENTER" spacing="5" GridPane.columnIndex="1" GridPane.halignment="CENTER">
+                    <Label fx:id="Slot2" style="-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 1.5em;" text="" />
+                    <Label fx:id="opponent2CardsCount" style="-fx-text-fill: white; -fx-font-size: 1.2em;" text="0 cards" />
                     <HBox fx:id="opponent2Cards" alignment="CENTER" spacing="-40" style="-fx-padding: 10; -fx-min-height: 100;" />
                 </VBox>
                 
-                <!-- Menu buttons at the top-left corner -->
-                <HBox alignment="CENTER_LEFT" spacing="15" style="-fx-padding: 10;" StackPane.alignment="TOP_LEFT">
-                    <Button fx:id="newGameButton" onAction="#handleNewGame" 
-                            style="-fx-background-color: #3498db; -fx-text-fill: white; -fx-font-weight: bold; -fx-min-width: 120; -fx-min-height: 30; -fx-font-size: 1em;" 
-                            text="Trò chơi mới" />
-                    <Button fx:id="quitButton" onAction="#handleQuit" 
-                            style="-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-weight: bold; -fx-min-width: 80; -fx-min-height: 30; -fx-font-size: 1em;" 
-                            text="Thoát" />
-                </HBox>
-            </StackPane>
-        </top>
-        
-        <!-- Left: Player opponent -->
-        <left>
-            <VBox alignment="CENTER" spacing="5" style="-fx-padding: 20;" BorderPane.alignment="CENTER">
-                <Label style="-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 1.5em;" text="Đối thủ 1" />
-                <Label fx:id="opponent1CardsCount" style="-fx-text-fill: white; -fx-font-size: 1.2em;" text="13 lá" />
-                <VBox fx:id="opponent1Cards" alignment="CENTER" spacing="-5" style="-fx-padding: 10; -fx-min-width: 100;" />
-            </VBox>
-        </left>
-        
-        <!-- Right: Player opponent -->
-        <right>
-            <VBox alignment="CENTER" spacing="5" style="-fx-padding: 20;" BorderPane.alignment="CENTER">
-                <Label style="-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 1.5em;" text="Đối thủ 3" />
-                <Label fx:id="opponent3CardsCount" style="-fx-text-fill: white; -fx-font-size: 1.2em;" text="13 lá" />
-                <VBox fx:id="opponent3Cards" alignment="CENTER" spacing="-5" style="-fx-padding: 10; -fx-min-width: 100;" />
-            </VBox>
-        </right>
-        
-        <!-- Center: Current pile -->
-        <center>
-            <VBox alignment="CENTER" spacing="10" BorderPane.alignment="CENTER">
-                <Label style="-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 1.5em;" text="Bài đang chơi" />
-                <HBox fx:id="currentPile" alignment="CENTER" spacing="-20" style="-fx-padding: 10; -fx-min-height: 150;" />
-            </VBox>
-        </center>
-        
-        <!-- Bottom: Current player -->
-        <bottom>
-            <VBox alignment="CENTER" spacing="10" style="-fx-padding: 20;" BorderPane.alignment="CENTER">
-                <Label style="-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 1.5em;" text="Bài của bạn" />
-                <Label fx:id="statusLabel" style="-fx-text-fill: white; -fx-font-size: 1.2em; -fx-font-weight: bold;" text="Chờ đến lượt..." />
-                <HBox fx:id="playerCards" alignment="CENTER" spacing="-40" style="-fx-padding: 10; -fx-min-height: 150;" />
+                <!-- Left opponent (row 1, column 0) -->
+                <VBox alignment="CENTER" spacing="5" GridPane.rowIndex="1" GridPane.valignment="CENTER">
+                    <Label fx:id="Slot1" style="-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 1.5em;" text="" />
+                    <Label fx:id="opponent1CardsCount" style="-fx-text-fill: white; -fx-font-size: 1.2em;" text="0 cards" />
+                    <HBox fx:id="opponent1Cards" alignment="CENTER" spacing="-40" style="-fx-padding: 10; -fx-min-height: 100;" />
+                </VBox>
                 
-                <!-- Control Buttons -->
-                <HBox alignment="CENTER" spacing="20" style="-fx-padding: 10;">
-                    <Button fx:id="playButton" onAction="#handlePlay" 
-                            style="-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-weight: bold; -fx-min-width: 120; -fx-min-height: 50; -fx-font-size: 1.2em;" 
-                            text="Đánh" />
-                    <Button fx:id="passButton" onAction="#handlePass" 
-                            style="-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-weight: bold; -fx-min-width: 120; -fx-min-height: 50; -fx-font-size: 1.2em;" 
-                            text="Bỏ lượt" />
-                </HBox>
-            </VBox>
-        </bottom>
+                <!-- Center: Current pile (row 1, column 1) -->
+                <VBox alignment="CENTER" spacing="10" GridPane.rowIndex="1" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.valignment="CENTER">
+                    <Label style="-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 1.5em;" text="Current Play" />
+                    <HBox fx:id="currentPile" alignment="CENTER" spacing="-20" style="-fx-padding: 10; -fx-min-height: 100;" />
+                </VBox>
+                
+                <!-- Right opponent (row 1, column 2) -->
+                <VBox alignment="CENTER" spacing="5" GridPane.rowIndex="1" GridPane.columnIndex="2" GridPane.halignment="CENTER" GridPane.valignment="CENTER">
+                    <Label fx:id="Slot3" style="-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 1.5em;" text="" />
+                    <Label fx:id="opponent3CardsCount" style="-fx-text-fill: white; -fx-font-size: 1.2em;" text="0 cards" />
+                    <HBox fx:id="opponent3Cards" alignment="CENTER" spacing="-40" style="-fx-padding: 10; -fx-min-height: 100;" />
+                </VBox>
+                
+                <!-- Current player (row 2, column 1) -->
+                <VBox alignment="CENTER" spacing="10" GridPane.rowIndex="2" GridPane.columnIndex="1" GridPane.halignment="CENTER">
+                    <HBox alignment="CENTER" spacing="20" style="-fx-padding: 10;">
+                        <Button fx:id="playButton" onAction="#handlePlay" style="-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-weight: bold; -fx-min-width: 120; -fx-min-height: 50; -fx-font-size: 1.2em;" text="Play" />
+                        <Button fx:id="passButton" onAction="#handlePass" style="-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-weight: bold; -fx-min-width: 120; -fx-min-height: 50; -fx-font-size: 1.2em;" text="Pass" />
+                    </HBox>
+                    <Label fx:id="statusLabel" style="-fx-text-fill: white; -fx-font-size: 1.2em; -fx-font-weight: bold;" text="Waiting for your turn..." />
+                    <Label fx:id="Slot4" style="-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 1.5em;" text="Your Cards" />
+                    <HBox fx:id="playerCards" alignment="CENTER" spacing="-40" style="-fx-padding: 10; -fx-min-height: 150;" />
+                </VBox>
+            </GridPane>
+        </center>
     </BorderPane>
 </StackPane>

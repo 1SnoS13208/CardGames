@@ -163,16 +163,86 @@ public class BlackJackController {
         alert.showAndWait();
     }
 
+    // Track dealer's cards for slow drawing
+    private int dealerCardIndex = 0;
+    
     private void endPlayerTurn() {
         playerStood = true;
         hitButton.setDisable(true);
         standButton.setDisable(true);
-        game.dealerTurn(); 
-        updateUI();
+        
+        // Instead of calling game.dealerTurn() immediately, we'll start the dealer's turn with animation
+        dealerCardIndex = 1; // Start from 1 since the first card is already visible
+        
+        // Show the dealer's first card (which was already face up)
+        updateDealerUI(true);
+        
+        // Start the dealer's turn with animation
+        startDealerAnimation();
+    }
+    
+    private void startDealerAnimation() {
+        // Get dealer's cards after dealer's turn is complete
+        game.dealerTurn();
+        List<Card> dealerCards = getDealerCards();
+        
+        // If we haven't shown all dealer cards yet
+        if (dealerCardIndex < dealerCards.size()) {
+            // Use JavaFX animation timer to add delay between card draws
+            javafx.animation.PauseTransition pause = new javafx.animation.PauseTransition(javafx.util.Duration.seconds(1));
+            pause.setOnFinished(event -> {
+                // Increment card index and update UI to show one more card
+                dealerCardIndex++;
+                updateDealerUI(false);
+                
+                // If more cards to show, continue animation
+                if (dealerCardIndex < dealerCards.size()) {
+                    startDealerAnimation();
+                } else {
+                    // All cards shown, finalize the game
+                    finalizeGame();
+                }
+            });
+            pause.play();
+        } else {
+            // No more cards to show, finalize the game
+            finalizeGame();
+        }
+    }
+    
+    private void updateDealerUI(boolean firstUpdate) {
+        dealerCardsArea.getChildren().clear();
+        List<Card> dealerCards = getDealerCards();
+        
+        // Show only the cards up to dealerCardIndex
+        for (int i = 0; i < Math.min(dealerCardIndex, dealerCards.size()); i++) {
+            dealerCardsArea.getChildren().add(createCardImageView(dealerCards.get(i)));
+        }
+        
+        // If this is the first update, don't show the score yet
+        if (firstUpdate) {
+            dealerHandLabel.setText("Dealer's Turn...");
+        } else {
+            // Calculate score of visible cards only
+            int visibleScore = game.getDealerScore();
+            dealerHandLabel.setText("Dealer Card: " + visibleScore);
+        }
+        
+        // Always update player cards
+        playerCardsArea.getChildren().clear();
+        for (Card card : getPlayerCards()) {
+            playerCardsArea.getChildren().add(createCardImageView(card));
+        }
+        playerHandLabel.setText("User Card: " + game.getPlayerScore());
+    }
+    
+    private void finalizeGame() {
+        // Show final result
         String result = game.getResultMessage();
         betLabel.setText(result + " Earn: " + game.getEarnAmount() + "$");
         moneyLabel.setText("Money: $" + game.getPlayer().getChips());
-        // Hiện hai nút khi có kết quả
+        
+        // Show buttons for next actions
         if (newGameButton != null) newGameButton.setVisible(true);
         if (quitButton != null) quitButton.setVisible(true);
     }

@@ -1,585 +1,496 @@
 package com.cardgame.poker;
 
-import com.cardgame.core.Card;
-import com.cardgame.core.DealerGame;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Scanner;
-import java.util.Set;
+import com.cardgame.core.*;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
- * Implementation of Texas Hold'em Poker for multiple human players
+ * Lớp đại diện cho một ván bài Poker Texas Hold'em.
+ * Quản lý luồng chơi, vòng cược và xử lý người chơi.
  */
-public class PokerGame extends DealerGame {
-    private List<PokerPlayer> players;
-    private List<Card> communityCards;
+/**
+ * Implementation of a Texas Hold'em Poker game.
+ * Manages the game flow, betting rounds, and player actions.
+ */
+public class PokerGame extends MultiplayerGame<PokerPlayer> {
+    private static final int SMALL_BLIND = 10;
+    private static final int BIG_BLIND = 20;
+    private static final int MAX_PLAYERS = 5;
+    
+    private final List<Card> communityCards;
     private int pot;
-    private int currentPlayerIndex;
-    private int dealerIndex;
-    private static final int MIN_BET = 10;
-    private static final int MAX_PLAYERS = 8;
-    private Scanner scanner;
-
+    private int currentBet;
+    private int dealerPosition;
+    private final PokerHandEvaluator evaluator;
+    private int lastRaisePosition;
+    private GameState gameState;
+    
     /**
-     * Initializes a new Poker game
+     * Khởi tạo một ván Poker mới.
      */
+    /**
+     * Possible game states during a poker round
+     */
+    private enum GameState {
+        PRE_FLOP, FLOP, TURN, RIVER, SHOWDOWN, GAME_OVER
+    }
+
     public PokerGame() {
-        super(new PokerScoringStrategy());
-        this.players = new ArrayList<>();
+        super();
         this.communityCards = new ArrayList<>();
         this.pot = 0;
-        this.currentPlayerIndex = 0;
-        this.dealerIndex = 0;
-        this.scanner = new Scanner(System.in);
+        this.currentBet = 0;
+        this.dealerPosition = 0;
+        this.lastRaisePosition = -1;
+        this.evaluator = new PokerHandEvaluator();
+        this.deck = new Deck();
+        this.gameState = GameState.PRE_FLOP;
     }
-
+    
     @Override
     public void start() {
-        System.out.println("Welcome to Texas Hold'em Poker!");
-        
-        // Get player names and create players
-        setupPlayers();
-        
-        while (!gameOver) {
-            playRound();
-            
-            System.out.print("\nDo you want to play again? (y/n): ");
-            String choice = scanner.nextLine().toLowerCase();
-            if (!choice.startsWith("y")) {
-                gameOver = true;
-            } else {
-                reset();
-                rotateDealerPosition();
-                shuffleIfNeeded(20);
-            }
-        }
-        endGame();
-    }
-
-    private void setupPlayers() {
-        System.out.print("How many players? (2-" + MAX_PLAYERS + "): ");
-        int playerCount;
-        try {
-            playerCount = Integer.parseInt(scanner.nextLine().trim());
-            playerCount = Math.max(2, Math.min(MAX_PLAYERS, playerCount)); // Ensure between 2 and MAX_PLAYERS
-        } catch (NumberFormatException e) {
-            playerCount = 2; // Default to 2 if invalid input
-            System.out.println("Invalid input. Using 2 players.");
+        if (players.size() < 2) {
+            throw new IllegalStateException("At least 2 players are required to start");
         }
         
-        for (int i = 1; i <= playerCount; i++) {
-            System.out.print("Enter name for Player " + i + ": ");
-            String playerName = scanner.nextLine();
-            if (playerName.trim().isEmpty()) {
-                playerName = "Player " + i;
-            }
-            players.add(new PokerPlayer(playerName));
-        }
+        // Reset game state
+        resetGame();
         
-        // Set the main player and dealer
-        player = players.get(0);
-        dealerIndex = players.size() - 1; // Last player is dealer for first round
-    }
-
-    @Override
-    public void playRound() {
-        System.out.println("\n--- New Round ---");
-        pot = 0;
-        communityCards.clear();
+        // Shuffle the deck
+        deck.shuffle();
         
-        // Collect blinds
-        collectBlinds();
+        // Post blinds
+        postBlinds();
         
-        // Deal hole cards (2 cards to each player)
+        // Deal hole cards
         dealHoleCards();
         
-        // Pre-flop betting round
-        System.out.println("\n--- Pre-flop betting ---");
-        if (bettingRound()) {
-            // Flop (3 community cards)
-            dealFlop();
-            System.out.println("\n--- Flop betting ---");
-            if (bettingRound()) {
-                // Turn (1 more community card)
-                dealTurn();
-                System.out.println("\n--- Turn betting ---");
-                if (bettingRound()) {
-                    // River (1 final community card)
-                    dealRiver();
-                    System.out.println("\n--- River betting ---");
-                    bettingRound();
-                }
-            }
+        // Start pre-flop betting round
+        startBettingRound();
+        
+        // If we still have active players after pre-flop, continue to flop
+        if (countActivePlayers() > 1) {
+            gameState = GameState.FLOP;
+            dealCommunityCards(3);
+            System.out.println("\n--- Flop ---");
+            showCommunityCards();
+            startBettingRound();
         }
         
-        // Showdown
-        showdown();
+        // Continue to turn if we still have active players
+        if (countActivePlayers() > 1) {
+            gameState = GameState.TURN;
+            dealCommunityCards(1);
+            System.out.println("\n--- Turn ---");
+            showCommunityCards();
+            startBettingRound();
+        }
+        
+        // Continue to river if we still have active players
+        if (countActivePlayers() > 1) {
+            gameState = GameState.RIVER;
+            dealCommunityCards(1);
+            System.out.println("\n--- River ---");
+            showCommunityCards();
+            startBettingRound();
+        }
+        
+        // End the round (will handle showdown if needed)
+        endRound();
     }
-
-    private void collectBlinds() {
-        int smallBlindIndex = (dealerIndex + 1) % players.size();
-        int bigBlindIndex = (dealerIndex + 2) % players.size();
-        
-        PokerPlayer smallBlind = players.get(smallBlindIndex);
-        PokerPlayer bigBlind = players.get(bigBlindIndex);
-        
-        System.out.println(smallBlind.getName() + " posts small blind: " + MIN_BET / 2);
-        smallBlind.placeBet(MIN_BET / 2);
-        pot += MIN_BET / 2;
-        
-        System.out.println(bigBlind.getName() + " posts big blind: " + MIN_BET);
-        bigBlind.placeBet(MIN_BET);
-        pot += MIN_BET;
-        
-        // Start with player after big blind
-        currentPlayerIndex = (bigBlindIndex + 1) % players.size();
+    
+    /**
+     * Advances the game to the next round if possible
+     */
+    private void nextRound() {
+        // This method is now a simple state transition
+        // The actual game flow is now handled in the start() method
+        // to make the flow more linear and easier to follow
     }
-
+    
+    /**
+     * Deals hole cards to all active players (2 cards each)
+     */
     private void dealHoleCards() {
-        System.out.println("\n--- Dealing hole cards ---");
-        
-        // Deal 2 cards to each player
-        for (int i = 0; i < 2; i++) {
-            for (PokerPlayer player : players) {
-                player.addCard(deck.draw());
-            }
-        }
-        
-        // Show each player their cards
-        for (PokerPlayer player : players) {
-            System.out.println("\n" + player.getName() + "'s hole cards: " + player.getHand());
-        }
-    }
-    
-    private void dealFlop() {
-        // Burn a card
-        deck.draw();
-        
-        // Deal 3 community cards
-        for (int i = 0; i < 3; i++) {
-            communityCards.add(deck.draw());
-        }
-        
-        System.out.println("\n--- Flop ---");
-        System.out.println("Community cards: " + communityCards);
-    }
-    
-    private void dealTurn() {
-        // Burn a card
-        deck.draw();
-        
-        // Deal 1 community card
-        Card turnCard = deck.draw();
-        communityCards.add(turnCard);
-        
-        System.out.println("\n--- Turn ---");
-        System.out.println("Turn card: " + turnCard);
-        System.out.println("Community cards: " + communityCards);
-    }
-    
-    private void dealRiver() {
-        // Burn a card
-        deck.draw();
-        
-        // Deal 1 community card
-        Card riverCard = deck.draw();
-        communityCards.add(riverCard);
-        
-        System.out.println("\n--- River ---");
-        System.out.println("River card: " + riverCard);
-        System.out.println("Community cards: " + communityCards);
-    }
-
-    /**
-     * Conducts a betting round
-     * 
-     * @return true if more than one player is still active after the betting round, false otherwise
-     */
-    private boolean bettingRound() {
-        int highestBet = getHighestBet();
-        boolean roundComplete = false;
-        
-        // Track which players have had a chance to act in this round
-        Set<PokerPlayer> playersActed = new HashSet<>();
-        currentPlayerIndex = (dealerIndex + 3) % players.size(); // Start with player after big blind
-        
-        while (!roundComplete) {
-            // Check if all players have folded except one
-            if (countActivePlayers() == 1) {
-                awardPotToLastActivePlayer();
-                return false;
-            }
-            
-            PokerPlayer currentPlayer = players.get(currentPlayerIndex);
-            
-            // Skip folded players
-            if (currentPlayer.hasFolded()) {
-                currentPlayerIndex = (currentPlayerIndex + 1) % players.size();
-                continue;
-            }
-            
-            // If all active players have acted and all bets are matched, we're done
-            if (playersActed.containsAll(getActivePlayers()) && allBetsMatched()) {
-                roundComplete = true;
-                continue;
-            }
-            
-            // Get player action
-            System.out.println("\n" + currentPlayer.getName() + "'s turn");
-            
-            processPlayerAction(currentPlayer, highestBet);
-            
-            // Mark this player as having acted
-            playersActed.add(currentPlayer);
-            
-            // Update highest bet
-            highestBet = getHighestBet();
-            
-            // Move to next player
-            currentPlayerIndex = (currentPlayerIndex + 1) % players.size();
-        }
-        
-        // Reset bets for the next betting round
-        for (PokerPlayer player : players) {
-            player.resetBet();
-        }
-        
-        return countActivePlayers() > 1;
-    }
-    
-    /**
-     * Checks if all active players have matched the highest bet
-     */
-    private boolean allBetsMatched() {
-        int highestBet = getHighestBet();
-        
-        for (PokerPlayer player : players) {
-            if (!player.hasFolded() && player.getCurrentBet() != highestBet) {
-                return false;
-            }
-        }
-        
-        return true;
-    }
-    
-    /**
-     * Gets a list of all active (non-folded) players
-     */
-    private List<PokerPlayer> getActivePlayers() {
-        List<PokerPlayer> activePlayers = new ArrayList<>();
-        
-        for (PokerPlayer player : players) {
-            if (!player.hasFolded()) {
-                activePlayers.add(player);
-            }
-        }
-        
-        return activePlayers;
-    }
-
-    private void processPlayerAction(PokerPlayer player, int highestBet) {
-        int callAmount = highestBet - player.getCurrentBet();
-        
-        System.out.println("\nCurrent pot: " + pot);
-        System.out.println("Community cards: " + communityCards);
-        System.out.println(player.getName() + "'s hole cards: " + player.getHand());
-        System.out.println(player.getName() + "'s chips: " + player.getChips());
-        
-        if (callAmount > 0) {
-            System.out.println("Call amount: " + callAmount);
-        }
-        
-        System.out.print("Action (fold/check/call/raise): ");
-        String action = new Scanner(System.in).nextLine().toLowerCase();
-        
-        if (action.startsWith("f")) {
-            player.fold();
-            System.out.println(player.getName() + " folded.");
-        } else if (action.startsWith("ch") && callAmount == 0) {
-            // Check is only valid if no call amount is required
-            System.out.println(player.getName() + " checked.");
-        } else if (action.startsWith("c")) {
-            if (callAmount > 0) {
-                if (player.placeBet(callAmount)) {
-                    pot += callAmount;
-                    System.out.println(player.getName() + " called " + callAmount);
-                } else {
-                    System.out.println("Not enough chips. Going all-in with " + player.getChips());
-                    pot += player.getChips();
-                    player.placeBet(player.getChips());
-                }
-            } else {
-                // If there's nothing to call, treat as check
-                System.out.println(player.getName() + " checked.");
-            }
-        } else if (action.startsWith("r")) {
-            System.out.print("Raise amount: ");
-            try {
-                int raiseAmount = Integer.parseInt(new Scanner(System.in).nextLine().trim());
-                if (raiseAmount > callAmount) {
-                    int totalBet = callAmount + raiseAmount;
-                    if (player.placeBet(totalBet)) {
-                        pot += totalBet;
-                        System.out.println(player.getName() + " raised by " + raiseAmount);
-                    } else {
-                        System.out.println("Not enough chips. Going all-in with " + player.getChips());
-                        pot += player.getChips();
-                        player.placeBet(player.getChips());
-                    }
-                } else {
-                    System.out.println("Raise amount must be greater than call amount. Treating as call.");
-                    if (player.placeBet(callAmount)) {
-                        pot += callAmount;
-                        System.out.println(player.getName() + " called " + callAmount);
-                    } else {
-                        System.out.println("Not enough chips. Going all-in with " + player.getChips());
-                        pot += player.getChips();
-                        player.placeBet(player.getChips());
-                    }
-                }
-            } catch (NumberFormatException e) {
-                System.out.println("Invalid amount. Treating as call.");
-                if (player.placeBet(callAmount)) {
-                    pot += callAmount;
-                    System.out.println(player.getName() + " called " + callAmount);
-                } else {
-                    System.out.println("Not enough chips. Going all-in with " + player.getChips());
-                    pot += player.getChips();
-                    player.placeBet(player.getChips());
-                }
-            }
-        } else {
-            System.out.println("Invalid action. Treating as call/check.");
-            if (callAmount > 0) {
-                if (player.placeBet(callAmount)) {
-                    pot += callAmount;
-                    System.out.println(player.getName() + " called " + callAmount);
-                } else {
-                    System.out.println("Not enough chips. Going all-in with " + player.getChips());
-                    pot += player.getChips();
-                    player.placeBet(player.getChips());
-                }
-            } else {
-                System.out.println(player.getName() + " checked.");
-            }
-        }
-    }
-
-    private void showdown() {
-        List<PokerPlayer> activePlayers = new ArrayList<>();
-        
-        // Get all active players
-        for (PokerPlayer player : players) {
-            if (!player.hasFolded()) {
-                activePlayers.add(player);
-            }
-        }
-        
-        if (activePlayers.size() == 1) {
-            // Only one player left, they win by default
-            PokerPlayer winner = activePlayers.get(0);
-            System.out.println("\nAll other players folded. " + winner.getName() + " wins " + pot + " chips!");
-            winner.addChips(pot);
-            return;
-        }
-        
-        System.out.println("\n--- Showdown ---");
-        
-        // Show all hands and calculate best 5-card hands
-        Map<PokerPlayer, List<Card>> bestHands = new HashMap<>();
-        Map<PokerPlayer, Integer> scores = new HashMap<>();
-        
-        for (PokerPlayer player : activePlayers) {
-            // Combine hole cards and community cards
-            List<Card> allCards = new ArrayList<>(player.getHand());
-            allCards.addAll(communityCards);
-            
-            // Get the best 5-card hand
-            List<Card> bestHand = findBestHand(allCards);
-            int score = ((PokerScoringStrategy) scoringStrategy).calculateScore(bestHand);
-            
-            bestHands.put(player, bestHand);
-            scores.put(player, score);
-            
-            System.out.println(player.getName() + " - Hole cards: " + player.getHand());
-            System.out.println("Best hand: " + bestHand + " - " + getHandRankName(score));
-        }
-        
-        // Find winner(s)
-        List<PokerPlayer> winners = new ArrayList<>();
-        int highestScore = -1;
-        
-        for (PokerPlayer player : activePlayers) {
-            int score = scores.get(player);
-            if (score > highestScore) {
-                winners.clear();
-                winners.add(player);
-                highestScore = score;
-            } else if (score == highestScore) {
-                winners.add(player);
-            }
-        }
-        
-        // Award pot to winner(s)
-        int winAmount = pot / winners.size();
-        for (PokerPlayer winner : winners) {
-            System.out.println("\n" + winner.getName() + " wins " + winAmount + " chips with " + getHandRankName(highestScore) + "!");
-            winner.addChips(winAmount);
-        }
-        
-        // Show updated chip counts
-        System.out.println("\nChip counts:");
-        for (PokerPlayer player : players) {
-            System.out.println(player.getName() + ": " + player.getChips());
-        }
-    }
-    
-    private List<Card> findBestHand(List<Card> cards) {
-        // Find the best 5-card hand from the 7 available cards
-        List<List<Card>> combinations = generateCombinations(cards, 5);
-        List<Card> bestHand = combinations.get(0);
-        int highestScore = ((PokerScoringStrategy) scoringStrategy).calculateScore(bestHand);
-        
-        for (int i = 1; i < combinations.size(); i++) {
-            List<Card> hand = combinations.get(i);
-            int score = ((PokerScoringStrategy) scoringStrategy).calculateScore(hand);
-            
-            if (score > highestScore) {
-                bestHand = hand;
-                highestScore = score;
-            }
-        }
-        
-        return bestHand;
-    }
-    
-    private List<List<Card>> generateCombinations(List<Card> cards, int k) {
-        List<List<Card>> result = new ArrayList<>();
-        generateCombinationsHelper(cards, k, 0, new ArrayList<>(), result);
-        return result;
-    }
-    
-    private void generateCombinationsHelper(List<Card> cards, int k, int start, List<Card> current, List<List<Card>> result) {
-        if (current.size() == k) {
-            result.add(new ArrayList<>(current));
-            return;
-        }
-        
-        for (int i = start; i < cards.size(); i++) {
-            current.add(cards.get(i));
-            generateCombinationsHelper(cards, k, i + 1, current, result);
-            current.remove(current.size() - 1);
-        }
-    }
-    
-    private String getHandRankName(int score) {
-        int rank = score / 100;
-        switch (rank) {
-            case 10: return "Royal Flush";
-            case 9: return "Straight Flush";
-            case 8: return "Four of a Kind";
-            case 7: return "Full House";
-            case 6: return "Flush";
-            case 5: return "Straight";
-            case 4: return "Three of a Kind";
-            case 3: return "Two Pair";
-            case 2: return "Pair";
-            default: return "High Card";
-        }
-    }
-
-    private void awardPotToLastActivePlayer() {
-        for (PokerPlayer player : players) {
-            if (!player.hasFolded()) {
-                System.out.println("\nAll other players folded. " + player.getName() + " wins " + pot + " chips!");
-                player.addChips(pot);
-                return;
-            }
-        }
-    }
-
-    private int countActivePlayers() {
-        int count = 0;
-        for (PokerPlayer player : players) {
-            if (!player.hasFolded()) {
-                count++;
-            }
-        }
-        return count;
-    }
-
-    private int getLastActivePlayerIndex() {
-        for (int i = players.size() - 1; i >= 0; i--) {
-            if (!players.get(i).hasFolded()) {
-                return i;
-            }
-        }
-        return 0; // Should never happen if we have at least one active player
-    }
-
-    private int getHighestBet() {
-        int highest = 0;
-        for (PokerPlayer player : players) {
-            highest = Math.max(highest, player.getCurrentBet());
-        }
-        return highest;
-    }
-
-    private void rotateDealerPosition() {
-        dealerIndex = (dealerIndex + 1) % players.size();
-    }
-
-    @Override
-    public boolean isGameOver() {
-        // Game is over if only one player has chips
-        int playersWithChips = 0;
-        for (PokerPlayer player : players) {
-            if (player.getChips() > 0) {
-                playersWithChips++;
-            }
-        }
-        return gameOver || playersWithChips <= 1;
-    }
-
-    @Override
-    public void endGame() {
-        System.out.println("\nThank you for playing Poker!");
-        
-        // Find the winner (player with most chips)
-        PokerPlayer winner = players.get(0);
-        for (PokerPlayer player : players) {
-            if (player.getChips() > winner.getChips()) {
-                winner = player;
-            }
-        }
-        
-        System.out.println("Game winner: " + winner.getName() + " with " + winner.getChips() + " chips!");
-        
-        // Show final chip counts for all players
-        System.out.println("\nFinal chip counts:");
-        for (PokerPlayer player : players) {
-            System.out.println(player.getName() + ": " + player.getChips() + " chips");
-        }
-        
-        closeResources();
-    }
-
-    @Override
-    public void reset() {
+        // Clear any existing cards from players' hands
         for (PokerPlayer player : players) {
             player.clearHand();
         }
-        communityCards.clear();
-        pot = 0;
+        
+        // Deal two cards to each player in turn
+        for (int i = 0; i < 2; i++) {
+            for (PokerPlayer player : players) {
+                if (player.getChips() > 0) {  // Only deal to players with chips
+                    player.addCard(deck.draw());
+                }
+            }
+        }
     }
+    
+    private void postBlinds() {
+        // Người chơi sau dealer đặt small blind
+        int smallBlindPos = (dealerPosition + 1) % players.size();
+        PokerPlayer smallBlindPlayer = players.get(smallBlindPos);
+        smallBlindPlayer.bet(SMALL_BLIND);
+        pot += SMALL_BLIND;
+        
+        // Người chơi tiếp theo đặt big blind
+        int bigBlindPos = (dealerPosition + 2) % players.size();
+        PokerPlayer bigBlindPlayer = players.get(bigBlindPos);
+        bigBlindPlayer.bet(BIG_BLIND);
+        pot += BIG_BLIND;
+        
+        currentBet = BIG_BLIND;
+        currentPlayerIndex = (bigBlindPos + 1) % players.size();
+    }
+    
 
-    public static void main(String[] args) {
-        PokerGame game = new PokerGame();
-        game.start();
+    
+    /**
+     * Chia bài chung
+     * @param count Số lá bài cần chia
+     */
+    private void dealCommunityCards(int count) {
+        for (int i = 0; i < count; i++) {
+            communityCards.add(deck.draw());
+        }
+    }
+    
+    /**
+     * Starts a new betting round
+     */
+    private void startBettingRound() {
+        currentBet = 0;
+        lastRaisePosition = -1;
+        currentBet = 0;
+        
+        // Reset current bet for all players
+        players.forEach(PokerPlayer::resetBet);
+        
+        // Start with the player after the big blind (or dealer if pre-flop)
+        currentPlayerIndex = (dealerPosition + 3) % players.size();
+    }
+    
+    /**
+     * Checks if the current betting round is complete
+     */
+    private boolean isBettingRoundComplete() {
+        // If only one player remains, round is complete
+        if (countActivePlayers() <= 1) {
+            return true;
+        }
+        
+        // If we've gone full circle without a raise, round is complete
+        if (currentPlayerIndex == (dealerPosition + 3) % players.size() && 
+            lastRaisePosition == -1) {
+            return true;
+        }
+        
+        // If we've reached the last raiser, round is complete
+        if (currentPlayerIndex == lastRaisePosition) {
+            return true;
+        }
+        
+        return false;
+    }
+    
+    private int countActivePlayers() {
+        return (int) players.stream()
+                .filter(p -> !p.hasFolded() && p.getChips() > 0)
+                .count();
+    }
+    
+    /**
+     * Processes a player's action
+     */
+    private void processPlayerAction(PokerPlayer player, PlayerAction action) {
+        switch (action.getType()) {
+            case FOLD:
+                player.fold();
+                break;
+                
+            case CALL:
+                int callAmount = Math.min(currentBet - player.getCurrentBet(), player.getChips());
+                if (callAmount > 0) {
+                    player.bet(callAmount);
+                    pot += callAmount;
+                }
+                break;
+                
+            case RAISE:
+                int raiseAmount = action.getAmount();
+                if (raiseAmount <= currentBet) {
+                    throw new IllegalArgumentException("Raise amount must be greater than current bet");
+                }
+                if (raiseAmount > player.getChips() + player.getCurrentBet()) {
+                    throw new IllegalArgumentException("Not enough chips to raise");
+                }
+                
+                // Process the call portion first
+                int callPortion = currentBet - player.getCurrentBet();
+                if (callPortion > 0) {
+                    player.bet(callPortion);
+                    pot += callPortion;
+                }
+                
+                // Then process the raise
+                int actualRaise = raiseAmount - currentBet;
+                player.bet(actualRaise);
+                pot += actualRaise;
+                currentBet = raiseAmount;
+                lastRaisePosition = currentPlayerIndex;
+                break;
+                
+            case ALL_IN:
+                int allInAmount = player.getChips();
+                player.bet(allInAmount);
+                pot += allInAmount;
+                System.out.println(player.getName() + " goes all in with " + allInAmount + " chips");
+                break;
+                
+            case CHECK:
+                if (player.getCurrentBet() < currentBet) {
+                    throw new IllegalStateException("Cannot check when facing a bet");
+                }
+                break;
+                
+        }
+    }
+    
+    @Override
+    public void addPlayer(PokerPlayer player) {
+        if (players.size() >= MAX_PLAYERS) {
+            throw new IllegalStateException("Maximum number of players reached");
+        }
+        super.addPlayer(player);
+    }
+    
+    @Override
+    public void endGame() {
+        // Implement end game logic
+    }
+    
+    @Override
+    public void playRound() {
+        if (isGameOver()) {
+            throw new IllegalStateException("Game is already over");
+        }
+        
+        // Process current player's action
+        PokerPlayer currentPlayer = getCurrentPlayer();
+        if (currentPlayer != null && !currentPlayer.hasFolded() && currentPlayer.getChips() > 0) {
+            PlayerAction action = currentPlayer.getAction(this);
+            processPlayerAction(currentPlayer, action);
+            
+            // Move to next player
+            currentPlayerIndex = (currentPlayerIndex + 1) % players.size();
+            
+            // Check if betting round is complete
+            if (isBettingRoundComplete()) {
+                nextRound();
+            }
+        }
+    }
+    
+    @Override
+    public boolean isGameOver() {
+        return gameOver;
+    }
+    
+    @Override
+    public void reset() {
+        // Reset game state for a new round
+        resetGame();
+    }
+    
+    /**
+     * Handles the end of a poker round
+     */
+    private void showCommunityCards() {
+        System.out.print("Community cards: ");
+        if (communityCards.isEmpty()) {
+            System.out.println("[]");
+            return;
+        }
+        
+        // Always show all community cards that have been dealt so far
+        System.out.println(communityCards);
+    }
+    
+    private String getHandDescription(List<Card> hand) {
+        // Combine player's hole cards with community cards
+        List<Card> allCards = new ArrayList<>(hand);
+        allCards.addAll(communityCards);
+        
+        // Evaluate the best 5-card hand
+        PokerHandEvaluator.PokerHandResult result = evaluator.evaluateBestHand(allCards);
+        return result.rank.toString().replace('_', ' ');
+    }
+    
+    private void endRound() {
+        // Show final community cards if we reached showdown
+        if (gameState == GameState.RIVER || gameState == GameState.SHOWDOWN) {
+            System.out.println("\n--- Final Board ---");
+            showCommunityCards();
+        }
+        
+        // Determine the winner
+        PokerPlayer winner = determineWinner();
+        if (winner != null) {
+            winner.addChips(pot);
+            System.out.println("\n--- Round Over ---");
+            System.out.println(winner.getName() + " wins " + pot + " chips!");
+            
+            // Show all hands in showdown
+            if (countActivePlayers() > 1) {
+                System.out.println("\n--- Showdown ---");
+                for (PokerPlayer player : players) {
+                    if (!player.hasFolded() && player.getChips() > 0) {
+                        System.out.println(player.getName() + " shows: " + player.getHand() + 
+                                       " (" + getHandDescription(player.getHand()) + ")");
+                    }
+                }
+            }
+        }
+        
+        // Check if game should continue
+        int playersWithChips = (int) players.stream().filter(p -> p.getChips() > 0).count();
+        if (playersWithChips < 2) {
+            System.out.println("\n--- Game Over ---");
+            if (playersWithChips == 1) {
+                PokerPlayer champion = players.stream().filter(p -> p.getChips() > 0).findFirst().orElse(null);
+                if (champion != null) {
+                    System.out.println(champion.getName() + " wins the game with " + champion.getChips() + " chips!");
+                }
+            }
+            gameOver = true;
+        }
+    }
+    
+    private PokerPlayer determineWinner() {
+        // If only one active player remains, they win
+        List<PokerPlayer> activePlayers = players.stream()
+                .filter(p -> !p.hasFolded() && p.getChips() > 0)
+                .toList();
+                
+        if (activePlayers.size() == 1) {
+            return activePlayers.get(0);
+        }
+        
+        // If we're not in showdown and have no community cards, return null
+        if (gameState != GameState.SHOWDOWN && communityCards.isEmpty()) {
+            return null;
+        }
+        
+        // Find the best hand among active players
+        PokerHandEvaluator.PokerHandResult bestResult = null;
+        List<PokerPlayer> winners = new ArrayList<>();
+        
+        for (PokerPlayer player : activePlayers) {
+            List<Card> playerCards = new ArrayList<>(player.getHand());
+            playerCards.addAll(communityCards);
+            
+            try {
+                PokerHandEvaluator.PokerHandResult result = evaluator.evaluateBestHand(playerCards);
+                
+                if (bestResult == null) {
+                    // First player's hand becomes the best hand
+                    bestResult = result;
+                    winners.clear();
+                    winners.add(player);
+                } else {
+                    // Compare with current best hand
+                    int compare = evaluator.compareHandResults(result, bestResult);
+                    if (compare > 0) {
+                        // New best hand found
+                        bestResult = result;
+                        winners.clear();
+                        winners.add(player);
+                    } else if (compare == 0) {
+                        // Tied with current best hand
+                        winners.add(player);
+                    }
+                }
+            } catch (IllegalArgumentException e) {
+                // Skip players with invalid hands
+                continue;
+            }
+        }
+        
+        // Handle split pot if multiple winners
+        if (winners.size() > 1) {
+            int splitAmount = pot / winners.size();
+            for (PokerPlayer winner : winners) {
+                winner.addChips(splitAmount);
+            }
+            System.out.println("\n--- Split Pot! ---");
+            System.out.println("Winners (" + splitAmount + " chips each): " + 
+                winners.stream().map(Player::getName).collect(Collectors.joining(", ")));
+            return null; // Indicate split pot
+        }
+        
+        // Return the single winner
+        return winners.isEmpty() ? null : winners.get(0);
+    }
+    
+    // Các phương thức getter cần thiết
+    public List<Card> getCommunityCards() {
+        return new ArrayList<>(communityCards);
+    }
+    
+    public int getPot() {
+        return pot;
+    }
+    
+    public int getCurrentBet() {
+        return currentBet;
+    }
+    
+    /**
+     * Resets the game state for a new round
+     */
+    private void resetGame() {
+        // Reset game state
+        pot = 0;
+        currentBet = 0;
+        communityCards.clear();
+        deck = new Deck();
+        deck.shuffle();
+        lastRaisePosition = -1;
+        
+        // Reset player states
+        for (PokerPlayer player : players) {
+            player.clearHand();
+            player.resetBet();
+            player.resetFold();
+        }
+        
+        // Move dealer button to next player who has chips
+        int nextDealer = (dealerPosition + 1) % players.size();
+        int attempts = 0;
+        while (players.get(nextDealer).getChips() <= 0 && attempts < players.size()) {
+            nextDealer = (nextDealer + 1) % players.size();
+            attempts++;
+        }
+        dealerPosition = nextDealer;
+        currentPlayerIndex = (dealerPosition + 1) % players.size();
+        
+        // Skip players with no chips
+        while (currentPlayerIndex < players.size() && players.get(currentPlayerIndex).getChips() <= 0) {
+            currentPlayerIndex = (currentPlayerIndex + 1) % players.size();
+            if (currentPlayerIndex >= players.size()) {
+                currentPlayerIndex = 0; // Wrap around if needed
+            }
+        }
+        
+        // Reset game state
+        gameState = GameState.PRE_FLOP;
+        gameOver = false;
+        
+        // Check if we have enough players with chips to continue
+        int activePlayers = (int) players.stream().filter(p -> p.getChips() > 0).count();
+        if (activePlayers < 2) {
+            gameOver = true;
+        }
     }
 }

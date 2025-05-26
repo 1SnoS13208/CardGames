@@ -2,8 +2,6 @@ package com.cardgame.tienlen;
 
 import com.cardgame.core.Card;
 
-import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import com.cardgame.core.HandEvaluator;
 
@@ -49,12 +47,25 @@ public class TienLenHandEvaluator extends HandEvaluator{
      */
     public MoveType detectMoveType(List<Card> cards) {
         if (cards == null || cards.isEmpty()) return MoveType.INVALID;
-        if (cards.size() == 1) return MoveType.SINGLE;
-        if (super.isFourOfAKind(cards)) return MoveType.FOUR_OF_A_KIND;
-        if (super.isThreeOfAKind(cards)) return MoveType.TRIPLE;
-        if (super.isPair(cards)) return MoveType.PAIR;
+        int n = cards.size();
+
+        if (n == 1) return MoveType.SINGLE;
+
+        // Check for specific hand types, ensuring correct card counts
+        // Assumes super.isPair, super.isThreeOfAKind, super.isFourOfAKind
+        // correctly identify the pattern, and we enforce the size here.
+        if (n == 2 && super.isPair(cards)) return MoveType.PAIR;
+        if (n == 3 && super.isThreeOfAKind(cards)) return MoveType.TRIPLE;
+        if (n == 4 && super.isFourOfAKind(cards)) return MoveType.FOUR_OF_A_KIND;
+
+        // isDoubleSequence has its own size checks (>=6 and even)
         if (isDoubleSequence(cards)) return MoveType.DOUBLE_SEQUENCE;
-        if (super.isStraight(cards)) return MoveType.SEQUENCE;
+
+        // Standard Tien Len sequences must have at least 3 cards.
+        // super.isStraight should confirm they are consecutive.
+        // The rule that sequences cannot contain '2' is checked in isValidMove and controller.
+        if (n >= 3 && super.isStraight(cards)) return MoveType.SEQUENCE;
+
         return MoveType.INVALID;
     }
 
@@ -147,28 +158,66 @@ public class TienLenHandEvaluator extends HandEvaluator{
 
     /**
      * So sánh hai sảnh (sequence): so sánh lá lớn nhất
+     * Sảnh phải cùng độ dài mới so sánh được
      */
     public int compareSequence(List<Card> seq1, List<Card> seq2) {
+        // Sảnh phải cùng độ dài
+        if (seq1.size() != seq2.size()) {
+            return 0; // Không so sánh được nếu khác độ dài
+        }
+        
         int max1 = seq1.stream().mapToInt(c -> getTienLenRank(c)).max().orElse(-1);
         int max2 = seq2.stream().mapToInt(c -> getTienLenRank(c)).max().orElse(-1);
-        return max1 - max2;
+        if (max1 != max2) return max1 - max2;
+        
+        // Nếu cùng giá trị cao nhất, so sánh chất của lá cao nhất
+        int suit1 = seq1.stream().filter(c -> getTienLenRank(c) == max1).mapToInt(c -> c.getSuitOrder()).max().orElse(-1);
+        int suit2 = seq2.stream().filter(c -> getTienLenRank(c) == max2).mapToInt(c -> c.getSuitOrder()).max().orElse(-1);
+        return suit1 - suit2;
     }
 
-        /**
+    /**
+     * Kiểm tra có lá 2 trong bộ bài không (giả sử 2 là 15)
+     */
+    public boolean isContainsTwo(List<Card> cards) {
+        for (Card c : cards) {
+            if (getTienLenRank(c) == 15) return true; // Use getTienLenRank to check for '2'
+        }
+        return false;
+    }
+
+    /**
      * Kiểm tra bộ bài người chơi chọn có hợp lệ để đánh (so với bàn hiện tại)
      * Nếu currentPile là null hoặc rỗng, chỉ cần hợp lệ theo luật bộ bài
      */
     public boolean isValidMove(List<Card> selectedCards, List<Card> currentPile) {
         MoveType moveType = detectMoveType(selectedCards);
         if (moveType == MoveType.INVALID) return false;
+        
         // Không cho phép đánh đôi/thông chứa 2
         if ((moveType == MoveType.DOUBLE_SEQUENCE || moveType == MoveType.SEQUENCE) && isContainsTwo(selectedCards)) return false;
+        
+        // Nếu bàn trống, chỉ cần kiểm tra bộ bài hợp lệ
         if (currentPile == null || currentPile.isEmpty()) return true;
-        // Phải cùng loại bộ, hoặc là bộ đặc biệt chặt được (ví dụ tứ quý chặt đôi 2)
+        
+        // Lấy loại bộ bài hiện tại trên bàn
         MoveType currentType = detectMoveType(currentPile);
+        
+        // Phải cùng loại bộ bài
         if (moveType == currentType) {
+            // Đặc biệt: đối với sảnh (SEQUENCE), phải cùng độ dài
+            if (moveType == MoveType.SEQUENCE && selectedCards.size() != currentPile.size()) {
+                return false; // Sảnh khác độ dài không thể so sánh
+            }
+            
+            // Đặc biệt: đối với đôi thông (DOUBLE_SEQUENCE), cũng phải cùng độ dài
+            if (moveType == MoveType.DOUBLE_SEQUENCE && selectedCards.size() != currentPile.size()) {
+                return false; // Đôi thông khác độ dài không thể so sánh
+            }
+            
             return compareHands(selectedCards, currentPile);
         }
+        
         // Luật đặc biệt: tứ quý chặt đôi 2, ba đôi thông chặt đôi 2, bốn đôi thông chặt tứ quý...
         return canBeat(selectedCards, currentPile);
     }
@@ -179,27 +228,21 @@ public class TienLenHandEvaluator extends HandEvaluator{
     public boolean canBeat(List<Card> selectedCards, List<Card> currentPile) {
         MoveType moveType = detectMoveType(selectedCards);
         MoveType currentType = detectMoveType(currentPile);
-        // Tứ quý chặt đôi 2
-        if (moveType == MoveType.FOUR_OF_A_KIND && currentType == MoveType.PAIR && isContainsTwo(currentPile)) {
+        // Tứ quý chặt 2
+        if (moveType == MoveType.FOUR_OF_A_KIND && currentType == MoveType.SINGLE && isContainsTwo(currentPile)) {
             return true;
         }
-        // Ba đôi thông chặt đôi 2
-        if (moveType == MoveType.DOUBLE_SEQUENCE && selectedCards.size() == 6 && currentType == MoveType.PAIR && isContainsTwo(currentPile)) {
+        // Ba đôi thông chặt 2
+        if (moveType == MoveType.DOUBLE_SEQUENCE && selectedCards.size() == 6 && currentType == MoveType.SINGLE && isContainsTwo(currentPile)) {
             return true;
         }
-        // Bốn đôi thông chặt tứ quý hoặc đôi 2
-        if (moveType == MoveType.DOUBLE_SEQUENCE && selectedCards.size() == 8 && (currentType == MoveType.FOUR_OF_A_KIND || (currentType == MoveType.PAIR && isContainsTwo(currentPile)))) {
+        // Bốn đôi thông chỉ chặt được tứ quý, không chặt được đôi 2 nữa
+        if (moveType == MoveType.DOUBLE_SEQUENCE && selectedCards.size() == 8 && currentType == MoveType.FOUR_OF_A_KIND) {
             return true;
         }
-        return false;
-    }
-
-    /**
-     * Kiểm tra có lá 2 trong bộ bài không (giả sử 2 là 15)
-     */
-    public boolean isContainsTwo(List<Card> cards) {
-        for (Card c : cards) {
-            if (c.getValue() == 15) return true; // 2 là 15
+        // Tứ quý chặt ba đôi thông
+        if (moveType == MoveType.FOUR_OF_A_KIND && currentType == MoveType.DOUBLE_SEQUENCE && selectedCards.size() == 6) {
+            return true;
         }
         return false;
     }

@@ -6,6 +6,13 @@
     "configurations": [
         {
             "type": "java",
+            "name": "PokerMain",
+            "request": "launch",
+            "mainClass": "com.cardgame.poker.PokerMain",
+            "projectName": "CardGame"
+        },
+        {
+            "type": "java",
             "name": "TienLenGUI",
             "request": "launch",
             "mainClass": "com.cardgame.tienlen.gui.TienLenGUI",
